@@ -1,0 +1,190 @@
+<__trans_section component="MoreAnalytics">
+
+<mt:setvarblock name="page_title"><__trans phrase="Google Analytics API Playground"></mt:setvarblock>
+<mt:setvarblock name="js_include" append="1">
+  <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/jquery-textext.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
+  <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/more-analytics.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
+  <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/metrics-and-dimensions/<mt:var name='metrics_and_dimensions_lang' escape='html'>.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl" id="header-include">
+
+<form action="#" method="post">
+<mtapp:setting
+    id="profile"
+    label="<__trans phrase='Profile'>">
+    <select name="ids" id="profiles">
+    </select>
+</mtapp:setting>
+
+<mtapp:setting
+    id="metrics"
+    label="<__trans phrase='Metrics'>">
+    <input type="text" name="metrics" id="metrics" style="min-width:400px">
+</mtapp:setting>
+
+<mtapp:setting
+    id="dimensions"
+    label="<__trans phrase='Dimensions'>">
+    <input type="text" name="dimensions" id="dimensions" style="min-width:400px">
+</mtapp:setting>
+
+<mtapp:setting
+    id="sort"
+    label="<__trans phrase='Sort'>">
+    <input type="text" name="sort" id="sort" style="min-width:400px">
+</mtapp:setting>
+
+
+<div id="results">
+    <ul class="tabs">
+        <button id="run-query" class="action primary button"><__trans phrase="Run Query"></button>
+        <li class="tab"><a href="#results-table"><__trans phrase="Result Table"></a></li>
+        <li class="tab"><a href="#results-template"><__trans phrase="Template Snipet"></a></li>
+    </ul>
+    <div id="results-table">
+        
+    </div>
+    <div id="results-template">
+        Template snipet
+    </div>
+</div>
+
+<mt:setvarblock name="jq_js_include">
+(function($) {
+
+    var cgiUrl = '<mt:CGIPath><mt:AdminScript>';
+
+    // Lexicon
+    var dimensions = {},
+        metrics = {},
+        all = {};
+
+    $.each($.MoreAnalyticsL10N.lexicon.metrics, function(key, value) {
+        var label = key + '=' + value.l + '/' + value.g;
+        metrics[label] = true;
+        all[label] = true;
+    });
+    $.each($.MoreAnalyticsL10N.lexicon.dimensions, function(key, value) {
+        var label = key + '=' + value.l + '/' + value.g;
+        dimensions[label] = true;
+        all[label] = true;
+    });
+
+    // Tabify
+    $('#results').tabs();
+
+    // Load other profiles
+    $.post( cgiUrl, {
+        __mode: 'ma_profiles',
+        blog_id: <mt:var name="blog_id">
+    })
+        .done(function(data, jqXHR) {
+            $('#profiles').append($(data).children());
+        })
+        .fail(function(jqXHR) {
+            console.log(jqXHR);
+        });
+
+    var opts = {
+        plugins: 'tags autocomplete',
+    };
+
+    // Tagify
+    $('#metrics').textext(opts).on({
+        getSuggestions: function(e, data) {
+            var re = new RegExp(data.query, 'i');
+            var results = [];
+            $.each(metrics, function(label) {
+                if ( label.match(re) ) results.push(label);
+            });
+
+            $(this).trigger('setSuggestions', {
+                result: results,
+                showHideDropdown: true
+            });
+        },
+        isTagAllowed: function(e, data) {
+            data.result = metrics[data.tag] ? true : false;
+        }
+    });
+
+    $('#dimensions').textext(opts).on({
+        getSuggestions: function(e, data) {
+            var re = new RegExp(data.query, 'i');
+            var results = [];
+            $.each(dimensions, function(label) {
+                if ( label.match(re) ) results.push(label);
+            });
+
+            $(this).trigger('setSuggestions', {
+                result: results,
+                showHideDropdown: true
+            });
+        },
+        isTagAllowed: function(e, data) {
+            data.result = dimensions[data.tag] ? true : false;
+        }
+    });
+
+    $('#sort').textext(opts).on({
+        getSuggestions: function(e, data) {
+            var re = new RegExp(data.query, 'i');
+            var results = [];
+            $.each(all, function(label) {
+                if ( label.match(re) ) {
+                    results.push(label + '<__trans phrase="(Asc)">');
+                    results.push('-' + label + '<__trans phrase="(Desc)">');
+                }
+            });
+
+            $(this).trigger('setSuggestions', {
+                result: results,
+                showHideDropdown: true
+            });
+        },
+        isTagAllowed: function(e, data) {
+            var tag = data.tag,
+                reAsc = new RegExp('<__trans phrase="\\(Asc\\)">$'),
+                reDesc = new RegExp('<__trans phrase="\\(Desc\\)">$'),
+                reMinus = /^\-/;
+            tag = tag.replace(reAsc, '');
+            tag = tag.replace(reDesc, '');
+            tag = tag.replace(reMinus, '');
+
+            data.result = all[tag] ? true : false;
+        }
+    });
+
+    // Run Query
+    $('#run-query').click(function() {
+        var fields = {};
+        $.each(['metrics', 'dimensions', 'sort'], function(i, f) {
+            try {
+                var $elements = $('#' + f).textext()[0].tags().tagElements();
+                var cols = [];
+                $elements.find('span.text-label').each(function() {
+                    cols.push($(this).text());
+                });
+
+                var normalized = [];
+                $.each(cols, function(j, c) {
+                    if ( c.match(/^(-?[a-z0-9]+)/i) )
+                        normalized.push(RegExp.$1);
+                });
+                fields[f] = normalized;
+            } catch(e) {
+                console.log(e);
+            }
+
+        });
+
+        console.log(fields);
+        return false;
+    });
+})(jQuery);
+</mt:setvarblock>
+
+<mt:include name="include/footer.tmpl" id="footer-include">
+
+</__trans_section>

@@ -1,0 +1,85 @@
+id: MoreAnalytics
+label: MoreAnalytics
+version: 0.01
+schema_version: 0.04
+l10n_class: MT::MoreAnalytics::L10N
+
+config_settings:
+    UpdateFileinfoStatsFreq:
+        Default: 180
+
+settings:
+    cache_expires_for_future:
+        Default: 3600
+    inherit_cache_expires_for_future:
+        Default: 1
+    cache_expires_for_past:
+        Default: 108000
+    inherit_cache_expires_for_past:
+        Default: 1
+    observe_days:
+        Default: 7
+    inherit_observe_days:
+        Default: 1
+    observe_today:
+        Default: 0
+    inherit_observe_today:
+        Default: 1
+
+object_types:
+    ma_cache: MT::MoreAnalytics::Cache
+    fileinfo:
+        ga_pageviews: integer indexed
+        ga_entrance_rate: float indexed
+        ga_exit_rate: float indexed
+        ga_visit_bounce_rate: float indexed
+        ga_avg_page_download_time: float indexed
+        ga_avg_page_load_time: float indexed
+        ga_time_on_page: float indexed
+        ga_unique_pageviews: integer indexed
+        ga_observed_on: datetime indexed
+
+list_properties:
+    entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
+    page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
+
+applications:
+    cms:
+        methods:
+            ma_playground: $MoreAnalytics::MT::MoreAnalytics::App::CMS::playground
+            ma_preview: $MoreAnalytics::MT::MoreAnalytics::App::CMS::preview
+            ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
+        menus:
+            ga:
+                label: Google Analytics
+                order: 5000
+            ga:playground:
+                label: API Playground
+                order: 100
+                mode: ma_playground
+                view:
+                    - blog
+                    - website
+
+tags:
+    block:
+        GAProfiles: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfiles
+        GAReport: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReport
+        GAReportHeader?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportHeader
+        GAReportFooter?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportFooter
+        GAGuessObject: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAGuessObject
+        GAIfObjectType?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfObjectType
+    function:
+        GAProfile: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfile
+        GAValue: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAValue
+        GAReportBreak: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportBreak
+
+tasks:
+    ga_update_fileinfo_stats:
+        label: MoreAnalytics Updates Object Stats
+        code: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_fileinfo_stats
+        frequency: sub { MT->instance->config('UpdateFileinfoStatsFreq') * 60 }
+
+stats_providers:
+    MoreAnalytics:
+        provider: MT::MoreAnalytics::Provider

@@ -1,0 +1,9 @@
+<select>
+<option value="" selected="selected"><__trans phrase="Default"></option>
+<mt:loop name="profiles">
+<option value="<mt:var name='accountId' escape='html'>">
+    <mt:var name="name" escape="html">
+    <small><mt:var name="webPropertyId" escape="html"></small>
+</option>
+</mt:loop>
+</select>
