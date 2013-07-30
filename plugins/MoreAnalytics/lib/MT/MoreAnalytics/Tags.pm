@@ -3,7 +3,7 @@ package MT::MoreAnalytics::Tags;
 use strict;
 use warnings;
 
-use MT::MoreAnalytics::Util qw(lookup_fileinfo);
+use MT::MoreAnalytics::Util qw(lookup_fileinfo _dumper);
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
 
@@ -37,67 +37,163 @@ use MT::MoreAnalytics::Request;
         $providers->{$blog->id}
             = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
     }
+
+    sub _dump_results {
+        my ( $ctx, $args, $array ) = @_;
+        no warnings 'uninitialized';
+
+        # Collect headers
+        my %headers;
+        foreach my $row ( @$array ) {
+            $headers{$_} = 1 foreach keys %$row;
+        }
+        my @headers = sort keys %headers;
+
+        # Format: table, csv or tsv
+        my $format = lc($args->{_dump} || '');
+        $format = 'table' if $format !~ /^(table|csv|tsv)$/i;
+
+        # Handler and separator by format
+        my ( $sep, $headerer, $rower, $liner );
+        if ( $format eq 'csv' || $format eq 'tsv' ) {
+            $sep = $format eq 'csv'? ',': "\t";
+            $headerer = $rower = sub {
+                $_ = shift;
+                $_ =~ s/"/\\"/;
+                $_ = qq("$_") if /($sep|\n)/;
+                $_;
+            };
+            $liner = sub { shift };
+        } else {
+            $headerer = sub {
+                $_ = shift;
+                "<th>$_</th>";
+            };
+            $rower = sub {
+                $_ = shift;
+                "<td>$_</td>";
+            };
+            $liner = sub {
+                $_ = shift;
+                "<tr>$_</tr>";
+            };
+        }
+
+        $sep ||= '';
+        my $result = '';
+
+        # Concat headers
+        $result .= $liner->(
+            join( $sep,
+                map { $headerer->($_) }
+                @headers
+            )
+        );
+        $result .= "\n";
+
+        # Concat lines
+        foreach my $r ( @$array ) {
+            my $line = join( $sep,
+                map { $rower->($_) }
+                map { $r->{$_} }
+                @headers
+            );
+            $result .= $liner->($line);
+            $result .= "\n";
+        }
+
+        # For table
+        $result = qq(<table>\n$result</table>)
+            if $format eq 'table';
+
+        $result;
+    }
+}
+
+{
+    sub _report_loop {
+        my ( $ctx, $args, $data, $items ) = @_;
+
+        # Loop inside
+        my $builder = $ctx->stash('builder');
+        my $tokens = $ctx->stash('tokens');
+        my $out = '';
+        my $count = scalar @$items;
+        local $ctx->{__stash}{ga_data} = $data;
+        local $ctx->{__stash}{ga_items} = $items;
+        local $ctx->{__stash}{ga_break} = 0;
+        for ( my $i = 0; $i < $count; $i++ ) {
+            my $item = $items->[$i];
+
+            local $ctx->{__stash}{ga_record} = $item;
+            local $ctx->{__stash}{vars} = {
+                __index__   => $i,
+                __number__  => $i + 1,
+                __count__   => $count,
+                __first__   => ($i == 0)? 1: 0,
+                __even__    => ($i % 2)? 0: 1,
+                __odd__     => ($i % 2)? 1: 0,
+                __last__    => ($i == $count-1)? 1: 0,
+                __break__   => 0,
+            };
+
+            defined ( my $line = $builder->build($ctx, $tokens) )
+                or return $ctx->error($builder->errstr);
+
+            last if $ctx->{__stash}{ga_break};
+
+            $out .= $line;
+        }
+
+        $out;
+    }
 }
 
 sub hdlr_GAReport {
     my ( $ctx, $args, $cond ) = @_;
     my $app = MT->instance;
-    my $builder = $ctx->stash('builder');
-    my $tokens = $ctx->stash('tokens');
 
     my $ma = _lookup_more_analytics( $ctx, $args );
-    my $request = MT::MoreAnalytics::Request->new($args);
 
+    # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
+    $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
+    unless ( $args->{ids} ) {
+        if ( my $profile = $ctx->stash('ga_profile') ) {
+            $args->{ids} = $profile->{id} if $profile->{id};
+        }
+    }
+
+    # Send request
+    my $request = MT::MoreAnalytics::Request->new($args);
     defined ( my $data = $ma->_request( $app, $request->normalize ) )
         or return $ctx->error($app->errstr);
 
     # Check if items is array
     my $items = $data->{items};
-    return $ctx->error( plugin->translate('items is not an array.') )
+    return $ctx->error( plugin->translate('items in results is not an array.') )
         unless ref $items eq 'ARRAY';
 
-    my $out = '';
-    my $count = scalar @$items;
-    local $ctx->{__stash}{ga_data} = $data;
-    for ( my $i = 0; $i < $count; $i++ ) {
-        my $item = $items->[$i];
+    # Dump mode
+    return _dump_results( $ctx, $args, $items ) if $args->{_dump};
 
-        local $ctx->{__stash}{ga_record} = $item;
-        local $ctx->{__stash}{vars} = {
-            __index__   => $i,
-            __number__  => $i + 1,
-            __count__   => $count,
-            __first__   => ($i == 0)? 1: 0,
-            __even__    => ($i % 2)? 0: 1,
-            __odd__     => ($i % 2)? 1: 0,
-            __last__    => ($i == $count-1)? 1: 0,
-            __break__   => 0,
-        };
-
-        defined ( my $line = $builder->build($ctx, $tokens) )
-            or return $ctx->error($builder->errstr);
-
-        last if $ctx->var('__break__');
-
-        $out .= $line;
-    }
-
-    $out;
+    _report_loop( $ctx, $args, $data, $items );
 }
 
 sub _hdlr_GAReportBreak {
     my ( $ctx, $args ) = @_;
-    $ctx->var('__break__', 1);
+    $ctx->{__stash}{ga_break} = 1;
     '';
 }
 
-sub _hdlr_GAReportPosition {
-    my ( $tag, $position, $ctx, $args, $cond ) = @_;
-    my $record = $ctx->stash('ga_record')
-        or return $ctx->error(
-            plugin->translate('[_1] is not used in mt:GAReport context.', $tag ) );
+{
+    sub _hdlr_GAReportPosition {
+        my ( $tag, $position, $ctx, $args, $cond ) = @_;
+        my $record = $ctx->stash('ga_record')
+            or return $ctx->error(
+                plugin->translate('[_1] is not used in mt:GAReport context.', $tag ) );
 
-    $ctx->var($position)? 1: 0;
+        $ctx->var($position)? 1: 0;
+    }
 }
 
 sub hdlr_GAReportHeader {
@@ -178,6 +274,42 @@ sub hdlr_GAIfObjectType {
         or return $ctx->error('mt:GAIfObjectType is requires "is" or "type" attribute.');
 
     $ctx->{__stash}{ga_objects}{$is} ? 1 : 0;
+}
+
+sub hdlr_GAProfiles {
+    my ( $ctx, $args, $cond ) = @_;
+    my $ma = _lookup_more_analytics( $ctx, $args )
+        or return;
+
+    my $profiles = $ma->profiles;
+
+    # Dump mode
+    return _dump_results( $ctx, $args, $profiles )
+        if $args->{_dump};
+
+    my $result = '';
+    my $builder = $ctx->stash('builder');
+    my $tokens = $ctx->stash('tokens');
+    foreach my $profile ( @$profiles ) {
+        local $ctx->{__stash}{ga_profile} = $profile;
+        defined ( my $out = $builder->build($ctx, $tokens) )
+            or return $ctx->error($builder->errstr);
+
+        $result .= $out;
+    }
+
+    $result;
+}
+
+sub hdlr_GAProfile {
+    my ( $ctx, $args ) = @_;
+
+    my $profile = $ctx->stash('ga_profile')
+        or return $ctx->error('[_1] should be in mt:GAProfiles context.', 'mt:GAProfile');
+    my $name = $args->{name} || 'id';
+    my $value = defined($profile->{$name}) ? $profile->{$name} : '';
+
+    $value;
 }
 
 1;

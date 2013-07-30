@@ -1,0 +1,158 @@
+#!/usr/bin/perl
+
+package MT::MoreAnalytics::Tool::Test;
+use strict;
+use utf8;
+
+use FindBin;
+use lib ("$FindBin::Bin/../lib", "$FindBin::Bin/../extlib");
+use base qw( MT::Tool );
+use Test::More;
+
+sub usage { '' }
+
+sub help {
+    return qw{
+    };
+}
+
+sub options {
+    return (
+    );
+}
+
+sub build_template {
+    my %args = @_;
+    my $text = $args{text} || '';
+    my $vars = $args{vars} || {};
+    my $stash = $args{stash} || {};
+
+    require MT::Builder;
+    require MT::Template::Context;
+    my $builder = MT::Builder->new;
+    my $ctx = MT::Template::Context->new;
+
+    foreach my $key ( keys %$stash ) {
+        $ctx->stash($key, $stash->{$key});
+    }
+    foreach my $key ( keys %$vars ) {
+        $ctx->var($key, $vars->{$key});
+    }
+
+    if ( my $tokens = $builder->compile($ctx, $text) ) {
+        if ( defined( my $result = $builder->build($ctx, $tokens) ) ) {
+            return $result;
+        } else {
+            confess $builder->errstr;
+        }
+    } else {
+        confess $builder->errstr;
+    }
+}
+
+sub main {
+    my $pkg = shift;
+    my ( $verbose ) = $pkg->SUPER::main(@_);
+
+    # Fix to 2013-07-28 in Japan
+    $MT::MoreAnalytics::Util::NOW = 1374995083;
+
+    subtest 'Compile' => sub {
+        my @modules = qw(
+            App::CMS App::Search
+            Cache ObjectStat Period PeriodMethod
+            Provider Request
+            Tags Tasks Util
+        );
+        unshift @modules, '';
+        foreach my $m ( @modules ) {
+            my $name = 'MT::MoreAnalytics';
+            $name .= "::$m" if $m;
+            use_ok $name;
+        }
+    };
+
+    subtest 'PeriodMethod' => sub {
+        subtest 'Today' => sub {
+            my $pm = MT::MoreAnalytics::PeriodMethod->create('today');
+            is $pm->format_ga, '2013-07-28', 'Format ts';
+            is $pm->summarize, '今日(集計当日)', 'Label';
+            is $pm->validate, 1, 'Validation';
+        };
+
+        subtest 'Yesterday' => sub {
+            my $pm = MT::MoreAnalytics::PeriodMethod->create('yesterday');
+            is $pm->format_ga, '2013-07-27', 'Format ts';
+            is $pm->summarize, '昨日(集計前日)', 'Label';
+            is $pm->validate, 1, 'Validation';
+        };
+
+        subtest 'Fixed' => sub {
+            my $pm = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $pm->params({ date => '2012-08-03' });
+            is $pm->format_ga, '2012-08-03', 'Format ts for fixed';
+            is $pm->summarize, '2012年08月03日', 'Label for fixed';
+            is $pm->validate, 1, 'Validation';
+        };
+
+        subtest 'Validate fixed' => sub {
+
+            my $badformat = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $badformat->params({ date => '123456' });
+            is $badformat->validate, undef, 'Invalid date format.';
+            is $badformat->errstr, '正しい日付の形式ではありません。', 'Invalid date format message';
+
+            my $badyear = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $badyear->params({ date => '1899-8-3' });
+            is $badyear->validate, undef, 'Invalid year.';
+            is $badyear->errstr, '年の指定が正しくありません。', 'Invalid year message';
+
+            my $badmonth = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $badmonth->params({ date => '2012-00-03' });
+            is $badmonth->validate, undef, 'Invalid month.';
+            is $badmonth->errstr, '月の指定が正しくありません。', 'Invalid month message';
+
+            my $badday = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $badday->params({ date => '2012-08-32' });
+            is $badday->validate, undef, 'Invalid day.';
+            is $badday->errstr, '日の指定が正しくありません。', 'Invalid day message';
+
+            my $badday = MT::MoreAnalytics::PeriodMethod->create('fixed');
+            $badday->params({ date => '2013-2-29' });
+            is $badday->validate, undef, 'Invalid date.';
+            is $badday->errstr, '存在しない日付です。', 'Invalid date message';
+        };
+
+        subtest 'days before' => sub {
+            my $pm = MT::MoreAnalytics::PeriodMethod->create('days_before');
+            $pm->params({ days => 2 });
+            is $pm->format_ga, '2013-07-26', 'Format ts';
+            is $pm->summarize, '2日前', 'Summary';
+        };
+
+        subtest 'validate days before' => sub {
+            my $baddays = MT::MoreAnalytics::PeriodMethod->create('days_before');
+            $baddays->params({ days => 'A' });
+            is $baddays->validate, undef, 'validate string days';
+            is $baddays->errstr, '0以上の整数を指定してください。', 'error message';
+
+            my $minus = MT::MoreAnalytics::PeriodMethod->create('days_before');
+            $minus->params({ days => -1 });
+            is $minus->validate, undef, 'validate minus days';
+            is $minus->errstr, '0以上の整数を指定してください。', 'error message';
+        };
+
+        subtest 'enumuration' => sub {
+            my $for_from = MT::MoreAnalytics::PeriodMethod->all_methods('from');
+            my @from_ids = map { $_->id } @$for_from;
+            is_deeply \@from_ids, [qw/days_before fixed/], 'For period from';
+
+            my $for_to = MT::MoreAnalytics::PeriodMethod->all_methods('to');
+            my @to_ids = map { $_->id } @$for_to;
+            is_deeply \@to_ids, [qw/yesterday today days_before fixed/], 'For period to';
+        };
+    };
+}
+
+__PACKAGE__->main() unless caller;
+done_testing;

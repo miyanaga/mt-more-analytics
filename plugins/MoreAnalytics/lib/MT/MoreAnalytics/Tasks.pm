@@ -20,50 +20,85 @@ my %OBSERVE_MAP = map {
     $_ => $v;
 } @OBSERVE_FIELDS;
 
-sub update_fileinfo_stats {
+sub update_object_stats {
     my $task = shift;
     my $app = MT->instance;
 
     my $iter = MT->model('blog')->load_iter( { class => '*' } )
         or return;
 
+    # Loop blogs.
     while ( my $blog = $iter->() ) {
 
-        my $ts = epoch2ts($blog, time);
-
-        MT::MoreAnalytics::Provider->is_ready( $app, $blog ) or next;
-        my $ma = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
-
-        my $request = MT::MoreAnalytics::Request->new(
-            observe_date_range( $blog ),
-            metrics     => join(',', values %OBSERVE_MAP),
-            dimensions  => 'pagePath',
-        );
-
-        my $data = $ma->_request($app, $request->normalize);
-        my $items = $data->{items};
-        next if ref $items ne 'ARRAY';
-
-        foreach my $record ( @$items ) {
-            my $fi = lookup_fileinfo( $blog, $record->{pagePath} ) or next;
-
-            my $values = { 
-                ga_observed_on => $ts,
-                map {
-                    my $snake = $_;
-                    my $camel = $OBSERVE_MAP{$_};
-
-                    "ga_$snake" => $record->{$camel} || 0,
-                } keys %OBSERVE_MAP,
-            };
-
-            use MT::MoreAnalytics::Util;
-            _dumper($values);
-
-            $fi->set_values($values);
-            $fi->save;
+        # Loop periods.
+        my @ids = ( 0, $blog->id );
+        if ( !$blog->is_blog ) {
+            push @ids, map { $_->id } @{$blog->blogs};
         }
 
+        my @periods = MT->model('ma_period')->load({blog_id => \@ids});
+        foreach my $p ( @periods ) {
+            my $age = time;
+
+            MT::MoreAnalytics::Provider->is_ready( $app, $blog ) or next;
+            my $ma = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
+
+            my $request = MT::MoreAnalytics::Request->new(
+                $p->ga_date_range($blog),
+                metrics     => join(',', values %OBSERVE_MAP),
+                dimensions  => 'pagePath',
+            );
+
+            my $data = $ma->_request($app, $request->normalize);
+            my $items = $data->{items};
+            next if ref $items ne 'ARRAY';
+
+            foreach my $r ( @$items ) {
+                my $fi = lookup_fileinfo( $blog, $r->{pagePath} ) or next;
+
+                my ( $ds, $id );
+                if ( $id = $fi->entry_id ) {
+                    $ds = 'entry';
+                } elsif ( $id = $fi->category_id ) {
+                    $ds = 'category';
+                } elsif ( $id = $fi->template_id ) {
+                    $ds = 'template';
+                } else {
+                    next;
+                }
+
+                my $values = {
+                    blog_id => $blog->id,
+                    object_ds => $ds,
+                    object_id => $id,
+                    ma_period_id => $p->id,
+                };
+
+                my $stat = MT->model('ma_object_stat')->load($values)
+                    || MT->model('ma_object_stat')->new;
+
+                $values = {
+                    %$values,
+                    age => $age,
+                    map {
+                        my $snake = $_;
+                        my $camel = $OBSERVE_MAP{$_};
+
+                        ( $snake => $r->{$camel} || 0 );
+                    } keys %OBSERVE_MAP,
+                };
+
+                $stat->set_values($values);
+                $stat->save;
+            }
+
+            # Cleanup
+            MT->model('ma_object_stat')->remove({
+                blog_id => $blog->id,
+                ma_period_id => $p->id,
+                age => { '<' => $age },
+            });
+        }
     }
 }
 

@@ -1,0 +1,150 @@
+<__trans_section component="MoreAnalytics">
+<mt:if name="id">
+  <mt:setvarblock name="page_title"><__trans phrase="Edit Aggregation Period"></mt:setvarblock>
+<mt:else>
+  <mt:setvar name="page_title" value="<__trans phrase="Create Aggregation Period">">
+  <mt:setvar name="new_object" value="1">
+</mt:if>
+<mt:setvar name="screen_id" value="edit_ma_period">
+<mt:setvar name="position_actions_bottom" value="1">
+
+<mt:setvarblock name="system_msg">
+<mt:if name="saved">
+  <mtapp:statusmsg
+     id="saved"
+     class="success"
+     can_close="1">
+    <__trans phrase="Your changes have been saved.">
+  </mtapp:statusmsg>
+</mt:if>
+<mt:if name="error">
+  <mtapp:statusmsg
+     id="generic-error"
+     class="error"
+     can_close="0">
+    <mt:var name="error" escape="html">
+  </mtapp:statusmsg>
+</mt:if>
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl">
+
+<form method="post" action="<mt:var name="script_url">" onsubmit="return checkRequired(this);">
+  <input type="hidden" name="__mode" value="save" id="__mode" />
+  <input type="hidden" name="_type" value="ma_period" />
+  <input type="hidden" name="blog_id" value="<mt:var name="blog_id" default="0">" />
+<mt:if name="id">
+  <input type="hidden" name="id" value="<mt:var name="id" escape="html">" />
+</mt:if>
+  <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="magic_token" />
+  <input type="hidden" name="return_args" value="<mt:var name="return_args">" id="return_args" />
+
+  <mtapp:setting
+     id="name"
+     label="<__trans phrase="Name">"
+     required="1">
+    <input type="text" name="name" value="<mt:var name="name" escape="html">" id="name" class="text" onchange="rebasename(this); changeName();" />
+  </mtapp:setting>
+
+  <mtapp:setting
+     id="description"
+     label="<__trans phrase="Description">">
+    <textarea id="description" name="description" class="text low"><mt:var name="description" escape="html"></textarea>
+  </mtapp:setting>
+
+  <mtapp:setting
+     id="basename"
+     label="<__trans phrase="Basename">"
+     required="1">
+    <input type="hidden" name="basename_manual" id="basename_manual" value="0" />
+    <input type="hidden" name="basename_old" id="basename_old" value="<mt:if name="id"><mt:var name="basename_old" escape="html"></mt:if>" />
+    <input type="text" name="basename" id="basename" class="text mt-edit-field<mt:if name="error"> show-input</mt:if>" maxlength="65" value="<mt:var name="basename" escape="html">" onchange="setElementValue('basename_manual', '1');" />
+    <p class="alert-warning-inline icon-left icon-warning" id="basename-warning" style="display: none;"><__trans phrase="Warning: Changing this field's basename may require changes to existing templates."></p>
+  </mtapp:setting>
+
+  <mtapp:setting
+    id="from_method"
+    class="toggle-form"
+    label="<__trans phrase='Aggregate from'>"
+    required="1">
+    <select name="from_method_id" id="form-method-id" class="toggle-form-selector">
+      <mt:loop name="from_methods">
+        <option value="<mt:var name='id'>"<mt:if name="is_selected"> selected="selected"</mt:if>>
+          <mt:var name="label">
+        </option>
+      </mt:loop>
+    </select>
+    <span class="prefix"><__trans phrase="_PREFIX_FROM"></span>
+    <mt:loop name="from_methods">
+      <span id="<mt:var name='form_id'>" style="display: none" class="toggle-form-target" data-form="<mt:var name='id'>">
+        <mt:var name="template" mteval="1">
+      </span>
+    </mt:loop>
+    <span class="suffix"><__trans phrase="_SUFFIX_FROM"></span>
+  </mtapp:setting>
+
+  <mtapp:setting
+    id="to_method"
+    class="toggle-form"
+    label="<__trans phrase='Aggregate to'>"
+    required="1">
+    <select name="to_method_id" id="to-method-id" class="toggle-form-selector">
+      <mt:loop name="to_methods">
+        <option value="<mt:var name='id'>"<mt:if name="is_selected"> selected="selected"</mt:if>>
+          <mt:var name="label">
+        </option>
+      </mt:loop>
+    </select>
+    <span class="prefix"><__trans phrase="_PREFIX_TO"></span>
+    <mt:loop name="to_methods">
+      <span id="<mt:var name='form_id'>" style="display: none" class="toggle-form-target" data-form="<mt:var name='id'>">
+        <mt:var name="template" mteval="1">
+      </span>
+    </mt:loop>
+    <span class="suffix"><__trans phrase="_SUFFIX_TO"></span>
+  </mtapp:setting>
+
+<mt:setvarblock name="action_buttons">
+  <button
+     type="submit"
+     accesskey="s"
+     title="<__trans phrase="Save this period (s)">"
+     class="save action primary button">
+    <__trans phrase="Save">
+  </button>
+<mt:if name="id">
+  <button
+     onclick="doRemoveItems(this.form, '<__trans phrase="period">', '<__trans phrase="periods">', 'id', {'return_args' : '__mode=list&amp;_type=ma_period&amp;blog_id=<mt:var name="blog_id">'})"
+     type="submit"
+     accesskey="x"
+     title="<__trans phrase="Delete this period (x)">"
+     class="delete action button">
+    <__trans phrase="Delete">
+  </button>
+</mt:if>
+</mt:setvarblock>
+
+<mt:setvarblock name="jq_js_include" append="1">
+(function($) {
+  var update = function() {
+    $('.toggle-form').each(function() {
+      var selected = $(this).find('.toggle-form-selector').val();
+      $(this).find('.toggle-form-target').each(function() {
+        if ( $(this).attr('data-form') == selected ) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    });
+  };
+
+  update();
+  $('.toggle-form .toggle-form-selector').change(update);
+})(jQuery);
+</mt:setvarblock>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
+</form>
+<mt:include name="include/footer.tmpl" id="footer-include">
+</__trans_section>

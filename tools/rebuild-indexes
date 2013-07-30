@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+package MT::MoreAnalytics::Tool::Test;
+use strict;
+use utf8;
+
+use FindBin;
+use lib ("$FindBin::Bin/../lib", "$FindBin::Bin/../extlib");
+use base qw( MT::Tool );
+
+my ( $blog_id );
+
+sub usage { '' }
+
+sub help {
+    return qw{
+        --blog_id <id>     Specify a blog context by blog ID.
+    };
+}
+
+sub options {
+    return (
+        'blog_id=i' => \$blog_id,
+    );
+}
+
+sub main {
+    my $pkg = shift;
+    my ( $verbose ) = $pkg->SUPER::main(@_);
+
+    my $blog = MT->model('blog')->load($blog_id) || MT->model('website')->load($blog_id)
+        or die 'Requires valid blog';
+
+    MT->instance->rebuild_indexes( Blog => $blog );
+}
+
+__PACKAGE__->main() unless caller;

@@ -13,7 +13,6 @@ our @EXPORT_OK = qw(
     are_all_days_past
     lookup_fileinfo
     observe_date_range
-    ga_profiles
 );
 
 my @INHERITABLE_CONFIG = qw(
@@ -22,6 +21,12 @@ my @INHERITABLE_CONFIG = qw(
     observe_days
     observe_today
 );
+
+our $NOW;
+
+sub now {
+    $NOW || time;
+}
 
 sub _stderr {
     print STDERR "\n\n", @_, "\n\n";
@@ -127,10 +132,6 @@ sub observe_date_range {
         start_date  => format_ts( '%Y-%m-%d', epoch2ts( $blog, $start ) ),
         end_date    => format_ts( '%Y-%m-%d', epoch2ts( $blog, $end ) ),
     );
-}
-
-sub ga_profiles {
-
 }
 
 1;

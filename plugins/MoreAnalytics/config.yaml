@@ -1,11 +1,11 @@
 id: MoreAnalytics
 label: MoreAnalytics
 version: 0.01
-schema_version: 0.04
+schema_version: 0.08
 l10n_class: MT::MoreAnalytics::L10N
 
 config_settings:
-    UpdateFileinfoStatsFreq:
+    UpdateObjectStatsFreq:
         Default: 180
 
 settings:
@@ -26,22 +26,53 @@ settings:
     inherit_observe_today:
         Default: 1
 
+period_methods:
+    yesterday:
+        available_for:
+            to: 1
+        label: Yesterday(The last day)
+        order: 100
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_yesterday
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_yesterday
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
+    today:
+        available_for:
+            to: 1
+        label: Today(The day)
+        order: 200
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_today
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_today
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
+    days_before:
+        label: Days before
+        order: 300
+        template: period_methods/days_before.tmpl
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_days_before
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_days_before
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_days_before
+    fixed:
+        label: Fixed date
+        order: 400
+        template: period_methods/fixed.tmpl
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_fixed
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_fixed
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_fixed
+
 object_types:
     ma_cache: MT::MoreAnalytics::Cache
-    fileinfo:
-        ga_pageviews: integer indexed
-        ga_entrance_rate: float indexed
-        ga_exit_rate: float indexed
-        ga_visit_bounce_rate: float indexed
-        ga_avg_page_download_time: float indexed
-        ga_avg_page_load_time: float indexed
-        ga_time_on_page: float indexed
-        ga_unique_pageviews: integer indexed
-        ga_observed_on: datetime indexed
+    ma_object_stat: MT::MoreAnalytics::ObjectStat
+    ma_period: MT::MoreAnalytics::Period
+    website:
+        ma_custom_widget: text meta
+    blog:
+        ma_custom_widget: text meta
+    author:
+        ma_custom_widget: text meta
 
 list_properties:
     entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
     page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
+    ma_period: $MoreAnalytics::MT::MoreAnalytics::Period::list_props
 
 applications:
     cms:
@@ -49,6 +80,25 @@ applications:
             ma_playground: $MoreAnalytics::MT::MoreAnalytics::App::CMS::playground
             ma_preview: $MoreAnalytics::MT::MoreAnalytics::App::CMS::preview
             ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
+            ma_view_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::view
+            ma_edit_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::edit
+            ma_save_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::save
+        callbacks:
+            cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_edit_period
+            cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_save_filter_period
+            cms_pre_save.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_save_period
+            template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_template_param_list_common
+            cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
+            cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
+        content_actions:
+            ma_period:
+                new_peiod:
+                    mode: edit
+                    args:
+                        _type: ma_period
+                    class: icon-create
+                    label: New Period
+                    order: 100
         menus:
             ga:
                 label: Google Analytics
@@ -60,6 +110,41 @@ applications:
                 view:
                     - blog
                     - website
+            ga:period:
+                label: Aggregation Periods
+                order: 200
+                mode: list
+                view:
+                    - system
+                    - website
+                    - blog
+                args:
+                    _type: ma_period
+
+widgets:
+    ma_custom_main_widget:
+        order:    1
+        label:    Custom Widget
+        plugin:   $MoreAnalytics
+        template: widget/custom_main_widget.tmpl
+        set: main
+        singular: 1
+        code:     $MoreAnalytics::MT::MoreAnalytics::App::Widget::custom_main_widget
+        view:
+            - website
+            - blog
+            - user
+            - system
+    ma_custom_sidebar_widget:
+        order:    2
+        label:    Custom Widget
+        plugin:   $MoreAnalytics
+        template: widget/custom_sidebar_widget.tmpl
+        set: sidebar
+        singular: 1
+        code:     $MoreAnalytics::MT::MoreAnalytics::App::Widget::custom_sidebar_widget
+        view:
+            - user
 
 tags:
     block:
@@ -75,10 +160,18 @@ tags:
         GAReportBreak: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportBreak
 
 tasks:
-    ga_update_fileinfo_stats:
+    ga_update_object_stats:
         label: MoreAnalytics Updates Object Stats
-        code: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_fileinfo_stats
-        frequency: sub { MT->instance->config('UpdateFileinfoStatsFreq') * 60 }
+        code: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_object_stats
+        frequency: sub { MT->instance->config('UpdateObjectStatsFreq') * 60 }
+
+listing_screens:
+    ma_period:
+        object_label: Aggregation Period
+        primary: title
+        default_sort_key: title
+        permission: administer_blog,edit_templates
+
 
 stats_providers:
     MoreAnalytics:

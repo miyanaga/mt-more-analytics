@@ -59,7 +59,7 @@ sub normalize {
 
     foreach my $name ( keys %$args ) {
         my $value = $args->{$name};
-        if ( $name =~ /^(ids|filters|metrics|dimensions|sort)$/ ) {
+        if ( $name =~ /^(ids|filters|metrics|dimensions|sort|segment)$/ ) {
 
             # Metrics or dimansions
             $value =~ s!ga:!!g;
@@ -69,6 +69,10 @@ sub normalize {
         } elsif ( $name =~ /^(start|end)-date$/ ) {
 
             # Date range            
+            $normalized->{$name} = $value;
+        } elsif ( $name =~ /^(max-results|start-index)$/ ) {
+
+            # Start index and max results
             $normalized->{$name} = $value;
         }
     }
