@@ -1,4 +1,99 @@
 <mtapp:widget id="ma_custom_main_widget" class="custom-widget custom-main-widget" label="<__trans phrase="Custom Main Widget">" can_close="1">
-<h2>Custom KPI</h2>
+
+<style>
+.widget-container .widget-hidden {
+  display: none;
+}
+
+.widget-container .widget-template {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.widget-container .widget-switch {
+  float: right;
+}
+</style>
+
+<div id="ma-custom-main-widget" class="widget-container">
+
+  <mtapp:statusmsg
+     class="widget-message widget-error widget-hidden msg-error"
+     can_close="0">
+  </mtapp:statusmsg>
+
+  <mtapp:statusmsg
+     class="widget-message widget-success widget-hidden msg-success"
+     can_close="0">
+  </mtapp:statusmsg>
+
+  <div class="widget-hidden widget-editor">
+
+    <textarea class="text high widget-template"></textarea>
+
+    <mt:setvarblock name="action_buttons">
+      <button
+         type="button"
+         accesskey="p"
+         title="<__trans phrase="Preview this template (s)">"
+         class="preview action primary button">
+        <__trans phrase="Preview">
+      </button>
+      <button
+         type="submit"
+         accesskey="s"
+         title="<__trans phrase="Save this period (s)">"
+         class="save action primary button">
+        <__trans phrase="Save">
+      </button>
+      <button
+         type="button"
+         accesskey="c"
+         title="<__trans phrase="Close editing (s)">"
+         class="close action button"
+         data-close-label="<__trans phrase="Close">"
+         data-cancel-label="<__trans phrase="Cancel">">
+        <__trans phrase="Close">
+      </button>
+    </mt:setvarblock>
+
+    <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
+
+    <hr />
+
+  </div>
+
+  <div class="widget-viewer">
+    <mt:unless name="has_template">
+      <p class="widget-introduction">
+      <__trans phrase="Click 'Edit' link to start editing template to show in this widget.">
+      </p>
+    </mt:unless>
+    <div class="widget-hidden widget-indicator">
+      Loading...
+    </div>
+    <div class="widget-viewport"></div>
+  </div>
+
+  <div class="widget-switch">
+    <a href="javascript:void(0)" class="widget-start-edit"><__trans phrase="Edit"></a>
+  </div>
+
+  <div style="clear:both"></div>
+</div>
+
+<script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/jquery-ui.custom-widget.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
+<script><!--
+  jQuery(function($) {
+    $('#ma-custom-main-widget').maCustomWidget({
+      viewAtFirst: <mt:if name="has_template">true<mt:else>false</mt:if>,
+      blogId: '<mt:var name="blog_id" default="0">',
+      magicToken: '<mt:var name="magic_token" escape="js">',
+      cgiUri: '<mt:CGIPath><mt:AdminScript>',
+      savedMessage: '<__trans phrase="Your template for widget has been saved.">',
+      jsonParseErrorMessage: '<__trans phrase="Parsing JSON has an error.">'
+    });
+  });
+--></script>
 
 </mtapp:widget>

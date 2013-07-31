@@ -81,9 +81,7 @@ applications:
             ma_playground_query: $MoreAnalytics::MT::MoreAnalytics::CMS::Playground::query
             ma_preview: $MoreAnalytics::MT::MoreAnalytics::App::CMS::preview
             ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
-            ma_view_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::view
-            ma_edit_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::edit
-            ma_save_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::save
+            ma_custom_widget: $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_widget_ajax
         callbacks:
             cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_edit_period
             cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_save_filter_period
@@ -130,7 +128,7 @@ widgets:
         template: widget/custom_main_widget.tmpl
         set: main
         singular: 1
-        code:     $MoreAnalytics::MT::MoreAnalytics::App::Widget::custom_main_widget
+        code:     $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_main_widget
         view:
             - website
             - blog
@@ -143,12 +141,13 @@ widgets:
         template: widget/custom_sidebar_widget.tmpl
         set: sidebar
         singular: 1
-        code:     $MoreAnalytics::MT::MoreAnalytics::App::Widget::custom_sidebar_widget
+        code:     $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_sidebar_widget
         view:
             - user
 
 tags:
     block:
+        GAIfReady?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfReady
         GAProfiles: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfiles
         GAReport: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReport
         GAReportHeader?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportHeader

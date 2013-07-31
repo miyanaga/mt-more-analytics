@@ -3,13 +3,13 @@ package MT::MoreAnalytics::Tags;
 use strict;
 use warnings;
 
-use MT::MoreAnalytics::Util qw(lookup_fileinfo _dumper);
+use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
 
 {
     sub _lookup_more_analytics {
-        my ( $ctx, $args ) = @_;
+        my ( $eh, $ctx, $args ) = @_;
         my $app = MT->instance;
 
         # Context cache
@@ -21,7 +21,7 @@ use MT::MoreAnalytics::Request;
             ? ( MT->model('blog')->load($blog_id) || MT->model('website')->load($blog_id) )
             : $ctx->stash('blog');
 
-        $blog or return $ctx->error(
+        $blog or return $eh->error(
                 plugin->translate( '[_1] requires blog context.', 'mt:GAReport' ) );
 
         # Lookup cache
@@ -30,7 +30,7 @@ use MT::MoreAnalytics::Request;
 
         # Check if MoreAnalytics provider is ready
         MT::MoreAnalytics::Provider->is_ready( $app, $blog )
-            or return $ctx->error(
+            or return $eh->error(
                 plugin->translate( 'Google Analytics is not ready for blog or website ID:[_1]', $blog->id ) );
 
         # Generate MoreAnalytics provider and store to cache
@@ -114,6 +114,8 @@ use MT::MoreAnalytics::Request;
     sub _report_loop {
         my ( $ctx, $args, $data, $items ) = @_;
 
+        _dumper($items);
+
         # Loop inside
         my $builder = $ctx->stash('builder');
         my $tokens = $ctx->stash('tokens');
@@ -149,11 +151,36 @@ use MT::MoreAnalytics::Request;
     }
 }
 
+sub hdlr_GAIfReady {
+    my ( $ctx, $args, $cond ) = @_;
+    my $eh = MT::ErrorHandler->new;
+
+    defined ( my $ma = _lookup_more_analytics( $eh, $ctx, $args ) )
+        or return 0;
+
+    1;
+}
+
 sub hdlr_GAReport {
     my ( $ctx, $args, $cond ) = @_;
     my $app = MT->instance;
+    my $blog = $ctx->stash('blog');
 
-    my $ma = _lookup_more_analytics( $ctx, $args );
+    defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
+        or return;
+
+    # Fill default period if no date range
+    $args->{period} ||= 'default'
+        if !$args->{start_date} && !$args->{end_date};
+
+    if ( my $ma_period = delete $args->{period} ) {
+
+        # Set date range if args has period
+        my $period = MT->model('ma_period')->load({basename => $ma_period})
+            or $ctx->error(plugin->translate('Period [_1] is not found.', $ma_period));
+        $args->{start_date} ||= $period->from_method->format_ga($blog);
+        $args->{end_date} ||= $period->to_method->format_ga($blog);
+    }
 
     # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
     $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
@@ -238,7 +265,7 @@ sub hdlr_GAGuessObject {
             plugin->translate( '[_1] is requires pagePath as report dimension or path attribute.', 'mt:GALookupObject' ) );
 
     # Look up fileinfo
-    my $fi = lookup_fileinfo( $blog, $path ) or return '';
+    my $fi = MT::MoreAnalytics::Util::lookup_fileinfo( $blog, $path ) or return '';
 
     # Look up related objects
     my %objects;
@@ -278,7 +305,7 @@ sub hdlr_GAIfObjectType {
 
 sub hdlr_GAProfiles {
     my ( $ctx, $args, $cond ) = @_;
-    my $ma = _lookup_more_analytics( $ctx, $args )
+    my $ma = _lookup_more_analytics( $ctx, $ctx, $args )
         or return;
 
     my $profiles = $ma->profiles;
