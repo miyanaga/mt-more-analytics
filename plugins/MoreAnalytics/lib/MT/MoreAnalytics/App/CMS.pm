@@ -8,35 +8,6 @@ use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::PeriodMethod;
 
-sub playground {
-    my $app = shift;
-    my %param;
-
-    my $plugindata = GoogleAnalytics::current_plugindata( $app, $app->blog );
-    my $config = $plugindata->data;
-    my $profile_id = $config->{profile_id} || return $app->error('No profile');
-
-    $param{more_analytics_version_id} = plugin->{version};
-    $param{current_profile_id} = $profile_id;
-
-    # Metrics and dimensions
-    {
-        my $lang = MT->current_language;
-        my $base = File::Spec->catdir(MT->instance->config('StaticFilePath'), qw(plugins MoreAnalytics metrics-and-dimensions));
-        my $path = File::Spec->catdir($base, "$lang.js");
-        $lang = 'en_US' unless -f $path;        
-
-        $param{metrics_and_dimensions_lang} = $lang;
-    }
-
-
-    plugin->load_tmpl('playground.tmpl', \%param);
-}
-
-sub preview {
-
-}
-
 sub profiles {
     my $app = shift;
     my $blog = $app->blog or return '';
@@ -237,6 +208,7 @@ sub entry_list_props {
         bulk_sort => sub {
             my $prop = shift;
             my ($objs, $load_options) = @_;
+            print STDERR (scalar @$objs), "\n";
             my @ids = map { $_->id } @$objs;
             my $col = $prop->col;
             my @only = ('object_id', $col);
@@ -353,7 +325,6 @@ sub on_template_param_list_common {
     my $current_period_id = $list_pref->{ma_period_id};
 
     # Load periods and pass as param
-    my $blog_id = $app->param('blog_id');
     my @blog_ids = (0);
     push @blog_ids, $blog_id if $blog_id;
     if ( my $blog = $app->blog ) {

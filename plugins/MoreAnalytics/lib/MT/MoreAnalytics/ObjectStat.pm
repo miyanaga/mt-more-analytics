@@ -34,6 +34,16 @@ __PACKAGE__->install_properties(
 sub class_label { plugin->translate('Object Statistics') }
 sub class_label_plural { plugin->translate('Object Statistics') }
 
+sub has_column_def {
+    my $pkg = shift;
+    $pkg = ref $pkg if ref $pkg;
+
+    my $name = shift;
+    my %names = map { $_ => 1 } @{$pkg->column_names};
+
+    $names{$name}? 1: 0;
+}
+
 sub cleanup {
     my $class = shift;
     # TODO Imprement 

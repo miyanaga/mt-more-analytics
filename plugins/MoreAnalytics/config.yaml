@@ -77,7 +77,8 @@ list_properties:
 applications:
     cms:
         methods:
-            ma_playground: $MoreAnalytics::MT::MoreAnalytics::App::CMS::playground
+            ma_playground: $MoreAnalytics::MT::MoreAnalytics::CMS::Playground::index
+            ma_playground_query: $MoreAnalytics::MT::MoreAnalytics::CMS::Playground::query
             ma_preview: $MoreAnalytics::MT::MoreAnalytics::App::CMS::preview
             ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
             ma_view_widget: $MoreAnalytics::MT::MoreAnalytics::App::Widget::view
@@ -154,10 +155,20 @@ tags:
         GAReportFooter?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportFooter
         GAGuessObject: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAGuessObject
         GAIfObjectType?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfObjectType
+        Entries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
+        Pages: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
     function:
         GAProfile: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfile
         GAValue: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAValue
         GAReportBreak: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportBreak
+        GAEntryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAEntryStat
+        GAPageStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAPageStat
+        GACategoryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GACategoryStat
+        GAFolderStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAFolderStat
+    filters:
+        Entries:
+            ga:sort_by:
+                handler: $MoreAnalytics::MT::MoreAnalytics::Tags::entries_filter
 
 tasks:
     ga_update_object_stats:

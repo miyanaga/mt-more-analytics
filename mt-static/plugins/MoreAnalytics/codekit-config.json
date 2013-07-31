@@ -37,17 +37,6 @@
       "outputAbbreviatedPath" : "\/metrics-and-dimensions\/ja-ck.js",
       "fileType" : 64
     },
-    "\/js\/more-analytics.js" : {
-      "ignoreWasSetByUser" : 0,
-      "ignore" : 1,
-      "hidden" : 0,
-      "outputPathIsSetByUser" : 0,
-      "inputAbbreviatedPath" : "\/js\/more-analytics.js",
-      "outputStyle" : 1,
-      "syntaxCheckerStyle" : 1,
-      "outputAbbreviatedPath" : "\/js\/more-analytics-ck.js",
-      "fileType" : 64
-    },
     "\/metrics-and-dimensions\/en_US.js" : {
       "ignoreWasSetByUser" : 0,
       "ignore" : 1,
@@ -57,6 +46,17 @@
       "outputStyle" : 1,
       "syntaxCheckerStyle" : 1,
       "outputAbbreviatedPath" : "\/metrics-and-dimensions\/en_US-ck.js",
+      "fileType" : 64
+    },
+    "\/js\/more-analytics.js" : {
+      "ignoreWasSetByUser" : 0,
+      "ignore" : 1,
+      "hidden" : 0,
+      "outputPathIsSetByUser" : 0,
+      "inputAbbreviatedPath" : "\/js\/more-analytics.js",
+      "outputStyle" : 1,
+      "syntaxCheckerStyle" : 1,
+      "outputAbbreviatedPath" : "\/js\/more-analytics-ck.js",
       "fileType" : 64
     },
     "\/js\/more-analytics.coffee" : {

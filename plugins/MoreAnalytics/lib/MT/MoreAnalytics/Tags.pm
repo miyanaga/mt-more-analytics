@@ -312,4 +312,115 @@ sub hdlr_GAProfile {
     $value;
 }
 
+sub hdlr_Entries {
+    my ( $ctx, $args, $cond ) = @_;
+    my $sort_by = $args->{sort_by};
+
+    if ( $sort_by && $sort_by =~ /^ga:(.+)$/i ) {
+        my $col = $1;
+        return $ctx->error(plugin->translate('[_1] is not found.', $col))
+            unless MT->model('ma_object_stat')->has_column_def($col);
+
+        my $ma_period = (delete $args->{'ga:period'}) || 'default';
+        my $period = MT->model('ma_period')->load({basename => $ma_period})
+            or return $ctx->error(
+                plugin->translate('Aggregation period [_1] not found.', $ma_period));
+
+        my $bulk_values;
+        my $max_len = 0;
+        my $default = '';
+
+        # Temporary injection sorter method for MT::Template::Tags::Entry L1173
+        # FIXME!
+        require MT::Entry;
+        local *MT::Entry::ma_sorter = sub {
+            my $self = shift;
+
+            unless( $bulk_values ) {
+
+                # Lookup-table
+                my @only = ( qw/object_id object_ds/, $col );
+                my %values = map {
+                    my $val = $_->$col;
+                    $max_len = length($val) if $max_len < length($val);
+                    ( $_->object_id => $val );
+                } MT->model('ma_object_stat')->load({
+                    ma_period_id => $period->id,
+                    object_ds => 'entry',
+                }, { fetchonly => \@only });
+
+                # Pad head with 0 to sort with cmp in original mt:Entries
+                # FIXME!!
+                $values{$_} = ( '0' x ($max_len - length($values{$_})) ) . $values{$_}
+                    foreach keys %values;
+                $default = '0' x $max_len;
+
+                $bulk_values = \%values;
+            }
+
+            $bulk_values->{$self->id} || $default;
+        };
+
+        # Clear sort_by and set ga:sort_by as 'ma_sorter'
+        # entries_filter will swap these
+        # FIXME!!!
+        delete $args->{sort_by};
+        local $args->{'ga:sort_by'} = 'ma_sorter';
+
+        return $ctx->super_handler($args, $cond);
+
+    } else {
+
+        # Pass thru
+        return $ctx->super_handler($args, $cond);
+    }
+}
+
+sub entries_filter {
+    my ( $ctx, $args, $cond ) = @_;
+
+    my $s = delete $args->{'ga:sort_by'} or return;
+    $args->{sort_by} = 'ma_sorter';
+
+    return;
+}
+
+{
+    sub ga_object_stat {
+        my $tag = shift;
+        my $scope = shift;
+        my $model = shift;
+        my ( $ctx, $args ) = @_;
+        my $name = $args->{name}
+            or return $ctx->error(
+                plugin->translate( '[_1] requires [_2] attribute.', $tag, 'name' ) );
+
+        my $obj = $ctx->stash($model)
+            or return $ctx->error('[_1] should be in [_2] context.', $tag, plugin->translate($scope));
+
+        my $ma_period = $args->{period} || 'default';
+        my $period = MT->model('ma_period')->load({basename => $ma_period})
+            or return $ctx->error('Aggregation period [_1] not found.', $ma_period);
+
+        my $stat = MT->model('ma_object_stat')->load({
+            ma_period_id => $period->id,
+            object_ds => $model,
+            object_id => $obj->id,
+        });
+
+        return '' unless $stat;
+        return '' unless $stat->can($name);
+        my %names = map { $_ => 1 } @{MT->model('ma_object_stat')->column_names};
+        return '' unless $names{$name};
+
+        return $stat->$name;
+    }
+}
+
+sub hdlr_GAEntryStat { ga_object_stat( 'mt:GAEntryStat', 'Entries', 'entry', @_ ) }
+sub hdlr_GAPageStat { ga_object_stat( 'mt:GAEntryStat', 'Pages', 'entry', @_ ) }
+
+sub hdlr_GACategoryStat { ga_object_stat( 'mt:GAEntryStat', 'Categories', 'category', @_ ) }
+sub hdlr_GAFolderStat { ga_object_stat( 'mt:GAEntryStat', 'Folders', 'category', @_ ) }
+
 1;

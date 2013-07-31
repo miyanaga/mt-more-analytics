@@ -65,15 +65,15 @@ sub normalize {
             $value =~ s!ga:!!g;
             $value =~ s!\s*([,;])\s*!$1!g;
             $value =~ s!(^|,|;|-)([a-z])!$1ga:$2!gi;
-            $normalized->{$name} = $value;
+            $normalized->{$name} = $value if length($value);
         } elsif ( $name =~ /^(start|end)-date$/ ) {
 
-            # Date range            
+            # Date range
             $normalized->{$name} = $value;
         } elsif ( $name =~ /^(max-results|start-index)$/ ) {
 
             # Start index and max results
-            $normalized->{$name} = $value;
+            $normalized->{$name} = $value if $value;
         }
     }
 
