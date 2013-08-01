@@ -114,8 +114,6 @@ use MT::MoreAnalytics::Request;
     sub _report_loop {
         my ( $ctx, $args, $data, $items ) = @_;
 
-        _dumper($items);
-
         # Loop inside
         my $builder = $ctx->stash('builder');
         my $tokens = $ctx->stash('tokens');
@@ -192,7 +190,8 @@ sub hdlr_GAReport {
 
     # Send request
     my $request = MT::MoreAnalytics::Request->new($args);
-    defined ( my $data = $ma->_request( $app, $request->normalize ) )
+    my $params = $request->normalize;
+    defined ( my $data = $ma->_request( $app, $params ) )
         or return $ctx->error($app->errstr);
 
     # Check if items is array
@@ -202,6 +201,15 @@ sub hdlr_GAReport {
 
     # Dump mode
     return _dump_results( $ctx, $args, $items ) if $args->{_dump};
+
+    # Stash camel formatted request params
+    my %camel_params = map {
+        my $val = $params->{$_};
+        s/_([a-z])/{uc($1)}/ieg;
+        $_ => $val;
+    } keys %$params;
+
+    local $ctx->{__stash}{ga_request} = \%camel_params;
 
     _report_loop( $ctx, $args, $data, $items );
 }
@@ -233,21 +241,27 @@ sub hdlr_GAReportFooter {
 
 sub hdlr_GAValue {
     my ( $ctx, $args ) = @_;
+
+    # Response record
     my $record = $ctx->stash('ga_record')
         or return $ctx->error(
             plugin->translate('[_1] is not used in mt:GAReport context.', 'mt:GAValue' ) );
 
+    # Request param
+    my $params = $ctx->stash('ga_request');
+
+    # Name
     my $name = $args->{name}
         or return $ctx->error(
             plugin->translate( '[_1] requires [_2] attribute.', 'mt:GAReport', 'name' ) );
 
-    $record->{$name};
+    $record->{$name} || $params->{$name};
 }
 
 sub hdlr_GAGuessObject {
     my ( $ctx, $args, $cond ) = @_;
     my $blog = $ctx->stash('blog');
-    my $type = $args->{type} || '';
+    my $type = $args->{type} || $args->{only} || '';
     my $builder = $ctx->stash('builder');
     my $tokens = $ctx->stash('tokens');
 
@@ -257,12 +271,14 @@ sub hdlr_GAGuessObject {
     # Requres mt:GAReport context
     my $record = $ctx->stash('ga_record')
         or return $ctx->error(
-            plugin->translate( '[_1] is not used in mt:GAReport context.', 'mt:GALookupObject' ) );
+            plugin->translate( '[_1] is not used in mt:GAReport context.', 'mt:GAGuessObject' ) );
 
     # Detect target path
-    my $path = $args->{path} || $record->{pagePath}
+    my $name = $args->{name} || $args->{field} || 'pagePath';
+    my $path = $args->{path} || $record->{$name};
+    defined ( $path )
         or return $ctx->error(
-            plugin->translate( '[_1] is requires pagePath as report dimension or path attribute.', 'mt:GALookupObject' ) );
+            plugin->translate( '[_1] can not detect path info.', 'mt:GALookupObject' ) );
 
     # Look up fileinfo
     my $fi = MT::MoreAnalytics::Util::lookup_fileinfo( $blog, $path ) or return '';
@@ -394,6 +410,9 @@ sub hdlr_Entries {
         delete $args->{sort_by};
         local $args->{'ga:sort_by'} = 'ma_sorter';
 
+        # Make default period context
+        local $ctx->{__stash}{ga_object_stat_period} = $ma_period;
+
         return $ctx->super_handler($args, $cond);
 
     } else {
@@ -418,14 +437,18 @@ sub entries_filter {
         my $scope = shift;
         my $model = shift;
         my ( $ctx, $args ) = @_;
+
+        # Name of field
         my $name = $args->{name}
             or return $ctx->error(
                 plugin->translate( '[_1] requires [_2] attribute.', $tag, 'name' ) );
 
+        # Object
         my $obj = $ctx->stash($model)
             or return $ctx->error('[_1] should be in [_2] context.', $tag, plugin->translate($scope));
 
-        my $ma_period = $args->{period} || 'default';
+        # Period
+        my $ma_period = $args->{period} || $ctx->stash('ga_object_stat_period') || 'default';
         my $period = MT->model('ma_period')->load({basename => $ma_period})
             or return $ctx->error('Aggregation period [_1] not found.', $ma_period);
 

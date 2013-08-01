@@ -87,7 +87,6 @@ sub _request {
             ns      => 'ga_report',
             serial  => $serial,
             text    => $json,
-            expires => $expires,
         );
     }
 

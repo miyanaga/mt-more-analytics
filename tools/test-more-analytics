@@ -60,6 +60,7 @@ sub main {
     subtest 'Compile' => sub {
         my @modules = qw(
             App::CMS App::Search
+            CMS::Period CMS::Widget CMS::Playground
             Cache ObjectStat Period PeriodMethod
             Provider Request
             Tags Tasks Util

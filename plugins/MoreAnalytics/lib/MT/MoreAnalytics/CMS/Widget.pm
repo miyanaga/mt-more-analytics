@@ -15,6 +15,19 @@ sub _custom_widget {
         ? $blog->$widget
         : $author->$widget;
 
+    # Check permission
+    if ( $blog ) {
+
+        # For blog, user needs permission
+        my $user = $app->user;
+        $widget_param->{editable} = $user->is_superuser
+            || $user->permissions($app->param('blog_id') || 0)->can_do('ma_edit_custom_widget');
+    } else {
+
+        # No blog, user dashboard always editable
+        $widget_param->{editable} = 1;
+    }
+
     $widget_param->{more_analytics_version_id} = plugin->{id};
     $widget_param->{has_template} = 1 if defined $template;
 
@@ -36,11 +49,11 @@ sub _instant_build {
     my $ctx = MT::Template::Context->new;
 
     if ( $stash ) {
-        $ctx->stash($_, $stash->{$_}) foreach $stash;
+        $ctx->stash($_, $stash->{$_}) foreach keys %$stash;
     }
 
     if ( $vars ) {
-        $ctx->var($_, $vars->{$_}) foreach $vars;
+        $ctx->var($_, $vars->{$_}) foreach keys %$vars;
     }
 
     if ( my $tokens = $builder->compile($ctx, ref $tmpl ? $tmpl->text : $tmpl) ) {
@@ -62,19 +75,23 @@ sub custom_widget_ajax {
     my $action = $q->param('action');
     my $widget = 'ma_custom_widget'; # Placeholder # $q->param('widget');
 
+    # Check permission only for blog widget editing
+    if ( $blog && $action ne 'view' ) {
+        my $user = $app->user;
+        return $app->json_error(plugin->translate('Permission denigied.'))
+            if !$user->is_superuser
+                && !$user->permissions($blog->id)->can_do('ma_edit_custom_widget');
+    }
+
     my $current_template = $blog
         ? $blog->$widget
         : $author->$widget;
 
     if ( $action eq 'edit' ) {
 
-        # TODO permission
-
         # Return raw template
         return $app->json_result({template => $current_template || 'welcome'});
     } elsif ( $action eq 'save' or $action eq 'preview' or $action eq 'view' ) {
-
-        # TODO permission
 
         # Template is current or passed
         my $template = $action eq 'view'

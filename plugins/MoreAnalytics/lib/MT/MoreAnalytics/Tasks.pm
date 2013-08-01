@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use MT::Util qw(format_ts epoch2ts);
-use MT::MoreAnalytics::Util qw(observe_date_range lookup_fileinfo _dumper);
+use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
 
@@ -20,6 +20,13 @@ my %OBSERVE_MAP = map {
     $_ => $v;
 } @OBSERVE_FIELDS;
 
+sub update_object_stats_freq {
+    my %config;
+    plugin->load_config(\%config, 'system');
+    _dumper('reach');
+    $config{update_object_stats_freq_min} * 60;
+}
+
 sub update_object_stats {
     my $task = shift;
     my $app = MT->instance;
@@ -27,8 +34,15 @@ sub update_object_stats {
     my $iter = MT->model('blog')->load_iter( { class => '*' } )
         or return;
 
-    # Loop blogs.
+    # Loop blogs and periods.
+    my %blog_ids;
+    my %period_ids;
+    my $queries = 0;
+    my $stats = 0;
+    my $removed = 0;
+
     while ( my $blog = $iter->() ) {
+        $blog_ids{$blog->id} = 1;
 
         # Loop periods.
         my @ids = ( 0, $blog->id );
@@ -38,8 +52,10 @@ sub update_object_stats {
 
         my @periods = MT->model('ma_period')->load({blog_id => \@ids});
         foreach my $p ( @periods ) {
+            $period_ids{$p->id} = 1;
             my $age = time;
 
+            # Query to Google Analytics API
             MT::MoreAnalytics::Provider->is_ready( $app, $blog ) or next;
             my $ma = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
 
@@ -50,11 +66,15 @@ sub update_object_stats {
             );
 
             my $data = $ma->_request($app, $request->normalize);
+            $queries++;
+
             my $items = $data->{items};
             next if ref $items ne 'ARRAY';
 
             foreach my $r ( @$items ) {
-                my $fi = lookup_fileinfo( $blog, $r->{pagePath} ) or next;
+
+                # Lookup object via fileinfo
+                my $fi = MT::MoreAnalytics::Util::lookup_fileinfo( $blog, $r->{pagePath} ) or next;
 
                 my ( $ds, $id );
                 if ( $id = $fi->entry_id ) {
@@ -67,6 +87,7 @@ sub update_object_stats {
                     next;
                 }
 
+                # Store to object_stat
                 my $values = {
                     blog_id => $blog->id,
                     object_ds => $ds,
@@ -90,16 +111,81 @@ sub update_object_stats {
 
                 $stat->set_values($values);
                 $stat->save;
+                $stats++;
             }
 
             # Cleanup
-            MT->model('ma_object_stat')->remove({
+            my $terms = {
                 blog_id => $blog->id,
                 ma_period_id => $p->id,
                 age => { '<' => $age },
-            });
+            };
+            $removed = MT->model('ma_object_stat')->count($terms);
+            MT->model('ma_object_stat')->remove($terms);
         }
     }
+
+    # TODO How about notification?
+    eval {
+        require MT::Log;
+        $app->log({
+            message => plugin->translate(
+                'MoreAnalytics updated object stats. [_1] blog(s), [_2] period(s), [_3] query(ies), [_4] stat(s).',
+                    scalar keys %blog_ids, scalar keys %period_ids, $queries, $stats
+            ),
+            class    => 'system',
+            category => 'plugin',
+            level    => MT::Log::INFO()
+        });
+    };
+}
+
+sub cleanup_cache_freq {
+    my %config;
+    plugin->load_config(\%config, 'system');
+    $config{cleanup_cache_freq_min} * 60;
+}
+
+sub cleanup_cache {
+    my $task = shift;
+    my $app = MT->instance;
+
+    # Cleanup cache
+    my %config;
+    plugin->load_config(\%config, 'system');
+    my $limit_mb = $config{cache_size_limit_mb};
+
+    # TODO rescue if limit_mb is not number.
+
+    my $limit = int( 1024 * 1024 * $limit_mb );
+    my $result = MT->model('ma_cache')->cleanup_to_size($limit);
+
+    # TODO How about notification?
+    eval {
+        require MT::Log;
+        if ( $result->{removed} ) {
+            $app->log({
+                message => plugin->translate(
+                    'MoreAnalytics cleanup cache. [_1] cache(s), [_2] bytes cleanup, limit to [_3] bytes, currently total [_4] bytes.',
+                        $result->{removed}, $result->{reduced}, $limit, $result->{current}
+                ),
+                class    => 'system',
+                category => 'plugin',
+                level    => MT::Log::INFO()
+            });
+        } else {
+            $app->log({
+                message => plugin->translate(
+                    'MoreAnalytics checked cache size, but current total [_1] bytes is within the limit of [_2] bytes.',
+                        $limit, $result->{current}
+                ),
+                class    => 'system',
+                category => 'plugin',
+                level    => MT::Log::INFO()
+            });
+        }
+
+    };
 }
 
 1;

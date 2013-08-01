@@ -59,7 +59,7 @@ sub normalize {
 
     foreach my $name ( keys %$args ) {
         my $value = $args->{$name};
-        if ( $name =~ /^(ids|filters|metrics|dimensions|sort|segment)$/ ) {
+        if ( $name =~ /^(ids|filters|fields|metrics|dimensions|sort|segment)$/ ) {
 
             # Metrics or dimansions
             $value =~ s!ga:!!g;
@@ -76,8 +76,6 @@ sub normalize {
             $normalized->{$name} = $value if $value;
         }
     }
-
-    _dumper($normalized);
 
     $normalized;
 }

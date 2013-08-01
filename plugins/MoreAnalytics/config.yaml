@@ -1,30 +1,85 @@
 id: MoreAnalytics
 label: MoreAnalytics
 version: 0.01
-schema_version: 0.08
+schema_version: 0.11
 l10n_class: MT::MoreAnalytics::L10N
+system_config_template: config/system.tmpl
 
 config_settings:
-    UpdateObjectStatsFreq:
+    MAUpdateObjectStatsFreq:
         Default: 180
+    MACleanupCacheFreq:
+        Default: 360
+    MACacheSizeLimitMB:
+        Default: 10
 
 settings:
-    cache_expires_for_future:
-        Default: 3600
-    inherit_cache_expires_for_future:
-        Default: 1
-    cache_expires_for_past:
-        Default: 108000
-    inherit_cache_expires_for_past:
-        Default: 1
-    observe_days:
-        Default: 7
-    inherit_observe_days:
-        Default: 1
-    observe_today:
-        Default: 0
-    inherit_observe_today:
-        Default: 1
+    update_object_stats_freq_min:
+        Scope: system
+        Default: 180
+    cleanup_cache_freq_min:
+        Scope: system
+        Default: 1440
+    cache_size_limit_mb:
+        Scope: system
+        Default: 100
+
+permissions:
+    website.ma_edit_custom_widget:
+        group: website_admin
+        label: Edit Custom KPI Widget
+        order: 3000
+        permitted_action:
+            ma_edit_custom_widget: 1
+    blog.ma_edit_custom_widget:
+        group: blog_admin
+        label: Edit Custom KPI Widget
+        order: 3000
+        permitted_action:
+            ma_edit_custom_widget: 1
+    website.ma_manage_period:
+        group: website_admin
+        label: Manage Aggregation Period
+        order: 3100
+        permitted_action:
+            ma_list_period: 1
+            ma_edit_period: 1
+    blog.ma_manage_period:
+        group: blog_admin
+        label: Manage Aggregation Period
+        order: 3100
+        permitted_action:
+            ma_list_period: 1
+            ma_edit_period: 1
+    website.ma_playground:
+        group: website_admin
+        label: Google Analytics API Playground
+        order: 3200
+        permitted_action:
+            ma_playground: 1
+    blog.ma_playground:
+        group: blog_admin
+        label: Google Analytics API Playground
+        order: 3200
+        permitted_action:
+            ma_playground: 1
+    system.ma_manage_period:
+        group: sys_admin
+        label: Manage Aggregation Period
+        order: 3100
+        permitted_action:
+            ma_list_period: 1
+            ma_edit_period: 1
+    website.administer_blog:
+        inherit_from:
+            - website.edit_custom_widget
+            - website.ma_manage_period
+            - website.ma_playground
+    blog.administer_blog:
+        inherit_from:
+            - blog.edit_custom_widget
+            - blog.ma_manage_period
+            - blog.ma_playground
 
 period_methods:
     yesterday:
@@ -74,6 +129,9 @@ list_properties:
     page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
     ma_period: $MoreAnalytics::MT::MoreAnalytics::Period::list_props
 
+callbacks:
+    post_init: $MoreAnalytics::MT::MoreAnalytics::on_post_init
+
 applications:
     cms:
         methods:
@@ -82,10 +140,11 @@ applications:
             ma_preview: $MoreAnalytics::MT::MoreAnalytics::App::CMS::preview
             ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
             ma_custom_widget: $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_widget_ajax
+            ma_drop_all_caches: $MoreAnalytics::MT::MoreAnalytics::App::CMS::drop_all_caches
         callbacks:
-            cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_edit_period
-            cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_save_filter_period
-            cms_pre_save.ma_period: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_save_period
+            cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_edit_period
+            cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_save_filter_period
+            cms_pre_save.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_pre_save_period
             template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_template_param_list_common
             cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
             cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
@@ -106,6 +165,7 @@ applications:
                 label: API Playground
                 order: 100
                 mode: ma_playground
+                permit_action: ma_playground
                 view:
                     - blog
                     - website
@@ -113,6 +173,7 @@ applications:
                 label: Aggregation Periods
                 order: 200
                 mode: list
+                permit_action: ma_list_period
                 view:
                     - system
                     - website
@@ -170,18 +231,25 @@ tags:
                 handler: $MoreAnalytics::MT::MoreAnalytics::Tags::entries_filter
 
 tasks:
-    ga_update_object_stats:
+    ma_update_object_stats:
         label: MoreAnalytics Updates Object Stats
         code: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_object_stats
-        frequency: sub { MT->instance->config('UpdateObjectStatsFreq') * 60 }
+        frequency: sub { 0 }
+        # frequency: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_object_stats_freq
+    ma_cleanup_cache:
+        label: MoreAnalytics Cleanup Cache
+        code: $MoreAnalytics::MT::MoreAnalytics::Tasks::cleanup_cache
+        frequency: sub { 0 }
+        # frequency: $MoreAnalytics::MT::MoreAnalytics::Tasks::ucleanup_cache_freq
 
 listing_screens:
     ma_period:
         object_label: Aggregation Period
         primary: title
         default_sort_key: title
-        permission: administer_blog,edit_templates
-
+        permission:
+            permit_action: ma_list_period
+            inherit: 0
 
 stats_providers:
     MoreAnalytics:

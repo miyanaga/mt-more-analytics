@@ -13,6 +13,12 @@ sub index {
     my $blog_id = $blog->id;
     my %param;
 
+    # Check permission
+    my $user = $app->user;
+    return $app->permission_denied()
+        if !$user->is_superuser
+            && !$user->permissions($app->param('blog_id') || 0)->can_do('ma_playground');
+
     my $plugindata = GoogleAnalytics::current_plugindata( $app, $app->blog );
     my $config = $plugindata->data;
     my $profile_id = $config->{profile_id} || return $app->error('No profile');
@@ -61,6 +67,16 @@ sub query {
     return $app->json_error(plugin->translate('Request needs a metric at least.'))
         if !defined($hash{metrics}) || length($hash{metrics}) < 1;
 
+    # Check permission
+    my $user = $app->user;
+    return $app->json_error($app->translate('Permission denied.'))
+        if !$user->is_superuser
+            && !$user->permissions($app->param('blog_id') || 0)->can_do('ma_playground');
+
+    # Max results limit to 1000
+    my $max_results = $hash{'max-results'} || $hash{'max_results'} || 1000;
+    $max_results = 1000 if $max_results > 1000;
+
     # Aggregation
     if ( my $ma_period = delete $hash{'ma-period'} ) {
         my $period = MT->model('ma_period')->load({basename => $ma_period})
@@ -68,8 +84,6 @@ sub query {
         $hash{'start-date'} = $hash{'start_date'} = $period->from_method->format_ga($blog);
         $hash{'end-date'} = $hash{'end_date'} = $period->to_method->format_ga($blog);
     }
-
-    _dumper(\%hash);
 
     # Prepare MoreAnalytics provider
     MT::MoreAnalytics::Provider->is_ready( $app, $blog )

@@ -1,0 +1,71 @@
+<mtapp:settingGroup
+    id="ma-update-object-stats">
+
+    <h2><__trans phrase="Update Object Stats"></h2>
+    <mtapp:setting
+        id="ma-update-object-stats-freq-min"
+        label="<__trans phrase='Update Frequency'>">
+        <input type="text num" name="update_object_stats_freq_min" value="<mt:var name='update_object_stats_freq_min'>">
+        <__trans phrase="Minutes">
+    </mtapp:setting>
+
+</mtapp:settingGroup>
+
+<mtapp:settingGroup
+    id="ma-cleanup-cache">
+
+    <h2><__trans phrase="Cleanup Cache"></h2>
+    <mtapp:setting
+        id="ma-cleanup-cache-freq-min"
+        label="<__trans phrase='Cleanup Frequency'>">
+        <input type="text num" name="cleanup_cache_freq_min" value="<mt:var name='cleanup_cache_freq_min'>">
+        <__trans phrase="Minutes">
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="ma-cache-size-limit-mb"
+        label="<__trans phrase='Limit Size'>"
+        hint="Scheduled tasks clenup caches over this size from older."
+        show_hint="1">
+        <input type="text num" name="cache_size_limit_mb" value="<mt:var name='cache_size_limit_mb'>">
+        <__trans phrase="MB">
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="ma-drop-all-caches"
+        label=" ">
+        <button type="button" id="ma-drop-all-caches"><__trans phrase="Drop All Caches"></button>
+        <span id="ma-drop-all-caches-loading" style="display:none"><__trans phrase="Processing..."></span>
+        <script type="text/javascript">
+            (function($){
+                $('#ma-drop-all-caches').click(function() {
+                    var $button = $(this);
+                    var $loading = $('#ma-drop-all-caches-loading');
+
+                    if ( confirm('<__trans phrase="Are you sure to drop all caches?">') ) {
+                        $button.hide();
+                        $loading.show();
+
+                        $.post('<mt:CGIPath><mt:AdminScript>', {
+                            __mode: 'ma_drop_all_caches',
+                            magic_token: '<mt:var name="magic_token">',
+                        })
+                            .done(function(data, jqXHR) {
+                                var message = data.result || data.error || '<__trans phrase="Error: Invalid result.">';
+                                alert(message);
+                            })
+                            .fail(function(jqXHR) {
+                                alert('<__trans phrase="Error:">' + jqXHR.statusText);
+                            })
+                            .always(function() {
+                                $button.show();
+                                $loading.hide();
+                            });
+                    }
+                });
+            })(jQuery);
+        </script>
+    </mtapp:setting>
+
+
+</mtapp:settingGroup>

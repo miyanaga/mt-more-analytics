@@ -65,9 +65,11 @@
 
   <div class="widget-viewer">
     <mt:unless name="has_template">
+      <mt:if name="editable">
       <p class="widget-introduction">
       <__trans phrase="Click 'Edit' link to start editing template to show in this widget.">
       </p>
+      </mt:if>
     </mt:unless>
     <div class="widget-hidden widget-indicator">
       Loading...
@@ -75,9 +77,11 @@
     <div class="widget-viewport"></div>
   </div>
 
+  <mt:if name="editable">
   <div class="widget-switch">
     <a href="javascript:void(0)" class="widget-start-edit"><__trans phrase="Edit"></a>
   </div>
+  </mt:if>
 
   <div style="clear:both"></div>
 </div>

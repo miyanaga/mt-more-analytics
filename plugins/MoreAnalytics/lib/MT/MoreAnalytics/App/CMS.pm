@@ -27,130 +27,6 @@ sub profiles {
     plugin->load_tmpl('playground/profiles.tmpl', \%param);
 }
 
-sub _split_from_to_params {
-    my ( $app ) = @_;
-    my %hash = $app->param_hash;
-
-    my %values;
-    foreach my $side ( qw/from to/ ) {
-        my %param;
-        foreach my $key ( keys %hash ) {
-            my @parts = split /\./, $key;
-            if ( scalar @parts > 1 && $parts[0] eq $side ) {
-                $param{$parts[1]} = $hash{$key};
-            }            
-        }
-        $values{$side} = \%param;
-    }
-
-    \%values;
-}
-
-sub on_edit_period {
-    my ( $cb, $app, $id, $obj, $param ) = @_;
-    my $values = _split_from_to_params($app);
-
-    if ( $obj ) {
-        $param->{id} = $obj->id;
-        $param->{name} = $obj->name;
-    } else {
-        $obj = MT::MoreAnalytics::Period->new;
-        $obj->from_method_id('days_before');
-        $obj->from_params(q({"days":8}));
-        $obj->to_method_id('yesterday');
-    }
-
-    foreach my $side ( qw/from to/ ) {
-        my $methods = MT::MoreAnalytics::PeriodMethod->all_methods($side);
-        my $id_name = $side . '_method_id';
-        my $current_id = $obj->$id_name;
-
-        my $params_name = $side . '_method_params';
-        my $method_params = $obj->$params_name;
-
-        if ( my $user_values = $values->{$side} ) {
-            foreach my $key ( keys %$user_values ) {
-                $method_params->{$key} = $user_values->{$key};
-            }
-        }
-
-        my @methods = map { {
-            %$method_params,
-            side        => $side,
-            id          => $_->id,
-            label       => $_->opts('label'),
-            is_selected => $_->id eq $current_id ? 1 : 0,
-            form_id     => join('-', $side, $_->id),
-            template    => $_->template,
-        } } @$methods;
-
-        my $methods_name = $side . '_methods';
-        $param->{$methods_name} = \@methods;
-    }
-
-    1;
-}
-
-sub on_save_filter_period {
-    my ( $cb, $app ) = @_;
-    my $values = _split_from_to_params($app);
-    my $q = $app->param;
-
-    return $cb->error(plugin->translate('Name is required.'))
-        unless length($q->param('name'));
-
-    return $cb->error(plugin->translate('Basename is reuquired.'))
-        unless length($q->param('basename'));
-
-    my $basename = $q->param('basename');
-    return $cb->error(plugin->translate('Basename should be consisted with alphabets, numbers or underscore.'))
-        if $basename !~ m!^[a-z_][a-z0-9_]+$!;
-
-    foreach my $side ( qw/from to/ ) {
-        my $id_name = $side . '_method_id';
-        my $id = $app->param($id_name);
-
-        return $cb->error(plugin->translate(
-            ($side eq 'from' ? '"Aggregate from" has no method.' : '"Aggregate to" hash no method')
-        )) unless $id;
-
-        my $pm = MT::MoreAnalytics::PeriodMethod->create($id);
-        $pm->params($values->{$side}) if $values->{$side};
-
-        my $res = $pm->validate;
-        unless ( defined $res ) {
-            return $cb->error(plugin->translate(
-                ($side eq 'from' ? '"Aggregate from" has probrem: [_1]'
-                    : '"Aggregate to" has probrem: [_1]'),
-                $pm->errstr,
-            ));            
-        }
-    }
-
-    1;
-}
-
-sub on_pre_save_period {
-    my ( $cb, $app, $obj, $orig ) = @_;
-    my %hash = $app->param_hash;
-    my $values = _split_from_to_params($app);
-
-    foreach my $col ( qw/id name basename description/ ) {
-        $obj->$col($hash{$col}) if defined $hash{$col};
-    }
-
-    foreach my $side ( qw/from to/ ) {
-        my $id_name = $side . '_method_id';
-        my $id = $hash{$id_name};
-        $obj->$id_name($id);
-
-        my $params_name = $side . '_method_params';
-        $obj->$params_name($values->{$side} || {});
-    }
-
-    1;
-}
-
 sub entry_list_props {
     my %base_prop = (
         display     => 'default',
@@ -208,7 +84,6 @@ sub entry_list_props {
         bulk_sort => sub {
             my $prop = shift;
             my ($objs, $load_options) = @_;
-            print STDERR (scalar @$objs), "\n";
             my @ids = map { $_->id } @$objs;
             my $col = $prop->col;
             my @only = ('object_id', $col);
@@ -398,6 +273,19 @@ sub on_pre_load_filtered_list_entry {
     $load_options->{ma_period_id} = $period->id;
 
     1;
+}
+
+sub drop_all_caches {
+    my ( $app ) = @_;
+
+    # Check permission
+    my $user = $app->user;
+    return $app->json_error(plugin->translate('Permission denied.'))
+        if !$user->is_superuser;
+
+    MT->model('ma_cache')->remove;
+
+    $app->json_result(plugin->translate('Droped all caches.'));
 }
 
 1;

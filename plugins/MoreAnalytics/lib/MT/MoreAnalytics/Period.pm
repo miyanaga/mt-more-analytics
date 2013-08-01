@@ -112,6 +112,13 @@ sub list_props {
             display => 'force',
             html_link => sub {
                 my ( $prop, $obj, $app ) = @_;
+                my $user = $app->user;
+                my $blog_id = $obj->blog_id || 0;
+
+                return ''
+                    if !$user->is_superuser
+                        && !$user->permissions($obj->blog_id)->can_do('ma_edit_period');
+
                 return $app->uri(
                     mode => 'edit',
                     args => {
