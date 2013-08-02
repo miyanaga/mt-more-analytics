@@ -64,7 +64,8 @@ sub normalize {
             # Metrics or dimansions
             $value =~ s!ga:!!g;
             $value =~ s!\s*([,;])\s*!$1!g;
-            $value =~ s!(^|,|;|-)([a-z])!$1ga:$2!gi;
+            $value =~ s!(^|,|;|-)([a-z0-9])!$1ga:$2!gi;
+            _dumper($value) if $name eq 'ids';
             $normalized->{$name} = $value if length($value);
         } elsif ( $name =~ /^(start|end)-date$/ ) {
 

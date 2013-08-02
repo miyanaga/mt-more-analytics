@@ -9,6 +9,9 @@ use vars qw( %Lexicon );
 
     # config.yaml
     'MoreAnalytics' => 'MoreAnalytics',
+    'Provides more features for Google Analytics.'
+        => 'Google Analyticsについてもっとたくさんの機能を提供します。',
+    "ideaman's Inc." => 'アイデアマンズ株式会社',
     'Edit Custom KPI Widget' => 'カスタムKPIウィジェットの編集',
     'Manage Aggregation Period' => '集計期間の管理',
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
@@ -36,7 +39,7 @@ use vars qw( %Lexicon );
     'Metrics' => '指標',
     'Dimension' => 'ディメンジョン',
     'Dimensions' => 'ディメンジョン',
-    'Fields' => 'フィルター',
+    'Fields' => 'フィールド',
     'Filters' => 'フィルター',
     'Options' => 'オプション',
     'Sort' => '並べ替え',
@@ -53,6 +56,8 @@ use vars qw( %Lexicon );
     '(Desc)' => '(降順)',
     '\\(Asc\\)' => '\\(昇順\\)',
     '\\(Desc\\)' => '\\(降順\\)',
+    'Unknown' => '不明',
+    'Reload' => '再読込',
 
     # tmpl/config/system.tmpl
     'Update Object Stats' => 'オブジェクト統計の更新',
@@ -61,6 +66,8 @@ use vars qw( %Lexicon );
     'Cleanup Cache' => 'キャッシュの整理',
     'Cleanup Frequency' => '整理の頻度',
     'Limit Size' => '制限容量',
+    'Scheduled tasks clenup caches over this size from older.'
+        => '定期タスクはこのサイズを超えた分のキャッシュを古い順に削除します。',
     'MB' => 'MB',
     'Drop All Caches' => 'キャッシュをすべて削除',
     'Processing...' => '処理中です...',

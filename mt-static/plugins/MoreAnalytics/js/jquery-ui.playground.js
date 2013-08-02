@@ -6,11 +6,288 @@
 
   $.widget('ui.maPlayground', {
     options: {
-      dummy: true
+      blogId: 0,
+      cgiUri: '',
+      metrics: {},
+      dimensions: {},
+      unknownLabel: 'Unknown',
+      indexLabel: '#'
     },
     _create: function() {
-      console.log(this.options);
-      return console.log('playground');
+      var _this = this;
+      this.container = this.element;
+      this.metrics = {};
+      this.dimensions = {};
+      this.sorts = {};
+      this.current = {};
+      this.current.metrics = [];
+      this.current.dimensions = [];
+      this.current.sort = [];
+      $.each(this.options.metrics, function(k, lex) {
+        var label;
+        label = k + ':' + lex.l + '#' + lex.g;
+        return _this.metrics[label] = true;
+      });
+      $.each(this.options.dimensions, function(k, lex) {
+        var label;
+        label = k + ':' + lex.l + '#' + lex.g;
+        return _this.dimensions[label] = true;
+      });
+      $.post(this.options.cgiUri, {
+        __mode: 'ma_profiles',
+        blog_id: this.options.blogId
+      }).done(function(data, jqXHR) {
+        var $profiles;
+        $profiles = _this.container.find('.ids');
+        return $profiles.append($(data).children());
+      }).fail(function(jqXHR) {
+        return console.log(jqXHR);
+      });
+      this.tagify();
+      this.container.find('.api-param').on('change', function() {
+        return _this.reload();
+      });
+      return this.container.find('.reload').click(function() {
+        return _this.reload();
+      });
+    },
+    reload: function() {
+      this.updateTemplateSnipet();
+      return this.updateListing();
+    },
+    _simpleTagify: function(cls, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      return this.container.find(cls).textext({
+        plugins: 'tags autocomplete'
+      }).on({
+        getSuggestions: function(e, data) {
+          var hash, re, results,
+            _this = this;
+          hash = {};
+          if (opts.hasher != null) {
+            hash = opts.hasher();
+          }
+          re = new RegExp(data.query, 'i');
+          results = [];
+          $.each(hash, function(l, v) {
+            if (l.match(re)) {
+              return results.push(l);
+            }
+          });
+          return $(this).trigger('setSuggestions', {
+            result: results,
+            showHideDropdown: true
+          });
+        },
+        isTagAllowed: function(e, data) {
+          var hash;
+          hash = {};
+          if (opts.hasher != null) {
+            hash = opts.hasher();
+          }
+          return data.result = hash[data.tag] || false;
+        },
+        getFormData: function(e, data) {
+          var current;
+          current = data[200].form;
+          if ((current != null) && (opts.updater != null)) {
+            return opts.updater(current);
+          }
+        }
+      });
+    },
+    tagify: function() {
+      var _this = this;
+      this._simpleTagify('.metrics', {
+        hasher: function() {
+          return _this.metrics;
+        },
+        updater: function(current) {
+          if (_this.current.metrics.join(',') !== current.join(',')) {
+            _this.current.metrics = current;
+            return _this.reload();
+          }
+        }
+      });
+      this._simpleTagify('.dimensions', {
+        hasher: function() {
+          return _this.dimensions;
+        },
+        updater: function(current) {
+          if (_this.current.dimensions.join(',') !== current.join(',')) {
+            _this.current.dimensions = current;
+            return _this.reload();
+          }
+        }
+      });
+      return this._simpleTagify('.sort', {
+        hasher: function() {
+          var hash;
+          hash = {};
+          $.each([_this.current.metrics, _this.current.dimensions], function(i, a) {
+            return $.each(a, function(j, v) {
+              hash[v] = true;
+              return hash['-' + v] = true;
+            });
+          });
+          return hash;
+        },
+        updater: function(current) {
+          if (_this.current.sort.join(',') !== current.join(',')) {
+            _this.current.sort = current;
+            return _this.reload();
+          }
+        }
+      });
+    },
+    tagifiedKeys: function(cls) {
+      var $els, cols, normalized;
+      $els = this.container.find(cls).textext()[0].tags().tagElements();
+      cols = [];
+      $els.find('span.text-label').each(function() {
+        return cols.push($(this).text());
+      });
+      normalized = [];
+      $.each(cols, function(i, c) {
+        if (c.match(/^(-?[a-z0-9]+)/i)) {
+          return normalized.push(RegExp.$1);
+        }
+      });
+      return normalized;
+    },
+    getParams: function() {
+      var params,
+        _this = this;
+      params = {};
+      $.each(['ids', 'period', 'filters', 'start-index', 'max-results'], function(i, id) {
+        var cls, p, v;
+        console.log(id);
+        cls = '.' + id;
+        v = _this.container.find(cls).val();
+        if (v === null || v === void 0) {
+          return;
+        }
+        v = v.replace(/\n/g, '');
+        if (v.length < 1) {
+          return;
+        }
+        p = id.replace(/-/g, '_');
+        return params[p] = v;
+      });
+      $.each(this.current, function(k, arr) {
+        var v, values;
+        values = [];
+        $.each(arr, function(i, f) {
+          if (f.match(/^(-?[a-z0-9]+)/i)) {
+            return values.push(RegExp.$1);
+          }
+        });
+        v = values.join(',');
+        if (v === null || v.length < 1) {
+          return;
+        }
+        return params[k] = v;
+      });
+      console.log(params);
+      return params;
+    },
+    updateTemplateSnipet: function() {
+      var all, attrs, dimensions, lines, metrics, params, values,
+        _this = this;
+      params = this.getParams();
+      metrics = this.current.metrics;
+      dimensions = this.current.dimensions;
+      all = dimensions.concat(metrics);
+      attrs = [];
+      $.each(params, function(k, v) {
+        if (k === 'period' && v === 'default') {
+          return;
+        }
+        return attrs.push(k + '="' + v + '"');
+      });
+      lines = [];
+      lines.push('<' + 'mt:GAReport ' + attrs.join(' ') + '>');
+      values = [];
+      $.each(all, function(i, k) {
+        var l, lex;
+        if (k.match(/^(-?[a-z0-9]+)/i)) {
+          k = RegExp.$1;
+        } else {
+          return;
+        }
+        lex = _this.options.metrics[k] || _this.options.dimensions[k];
+        if (lex != null) {
+          l = lex.l + '(' + lex.g + ')';
+        }
+        if (lex == null) {
+          l = 'Unknown';
+        }
+        return values.push(l + ': <' + '$mt:GAValue name="' + k + '"$>');
+      });
+      if (values.length > 0) {
+        lines.push('');
+        lines = lines.concat(values);
+        lines.push('');
+      }
+      lines.push('</' + 'mt:GAReport' + '>');
+      return this.container.find('.template-snipet').val(lines.join("\n"));
+    },
+    _showQueryError: function(msg) {
+      return this.container.find('.query-error').removeClass('hidden').find('.msg-text').text(msg);
+    },
+    updateListing: function() {
+      var $headers, $tbody, params,
+        _this = this;
+      params = this.getParams();
+      params.__mode = 'ma_playground_query';
+      params.blog_id = this.options.blogId;
+      this.container.find('.query-error').addClass('hidden');
+      this.container.find('.reload').addClass('hidden');
+      this.container.find('.loading').removeClass('hidden');
+      $headers = this.container.find('.listing-thead-row');
+      $headers.children().remove();
+      $tbody = this.container.find('.listing-tbody');
+      $tbody.children().remove();
+      return $.post(this.options.cgiUri, params).always(function(jqXHR) {
+        _this.container.find('.reload').removeClass('hidden');
+        return _this.container.find('.loading').addClass('hidden');
+      }).fail(function(jqXHR) {
+        return _this._showQueryError(jqXHR.statusText);
+      }).done(function(data, jqXHR) {
+        var $th;
+        if (data.error != null) {
+          _this._showQueryError(data.error);
+          return;
+        }
+        console.log(data);
+        $th = $('<th class="col head cb"><span class="col-label" /></th>');
+        $th.find('.col-label').text(_this.options.indexLabel);
+        $headers.append($th);
+        $.each(data.result.headers, function(i, h) {
+          var label, lex;
+          $th = $('<th class="col head"><div class="col-label key" /></th>');
+          $th.find('.key').text(h);
+          lex = _this.options.metrics[h] || _this.options.dimensions[h];
+          if (lex != null) {
+            label = lex.l + '(' + lex.g + ')';
+            $th.append($('<div class="col-label label" />').text(label));
+          }
+          return $headers.append($th);
+        });
+        return $.each(data.result.items, function(i, item) {
+          var $td, $tr;
+          $tr = $('<tr />');
+          $td = $('<td class="col" />').text(i + 1);
+          $tr.append($td);
+          $.each(data.result.headers, function(j, h) {
+            $td = $('<td class="col" />').text(item[h]);
+            return $tr.append($td);
+          });
+          return $tbody.append($tr);
+        });
+      });
     }
   });
 

@@ -1,17 +1,12 @@
 id: MoreAnalytics
 label: MoreAnalytics
-version: 0.01
+description: <__trans phrase="Provides more features for Google Analytics.">
+author: <__trans phrase="ideaman's Inc.">
+author_link: http://www.ideamans.com/
+version: 0.4.0
 schema_version: 0.11
 l10n_class: MT::MoreAnalytics::L10N
 system_config_template: config/system.tmpl
-
-config_settings:
-    MAUpdateObjectStatsFreq:
-        Default: 180
-    MACleanupCacheFreq:
-        Default: 360
-    MACacheSizeLimitMB:
-        Default: 10
 
 settings:
     update_object_stats_freq_min:
@@ -124,6 +119,15 @@ object_types:
     author:
         ma_custom_widget: text meta
 
+listing_screens:
+    ma_period:
+        object_label: Aggregation Period
+        primary: title
+        default_sort_key: title
+        permission:
+            permit_action: ma_list_period
+            inherit: 0
+
 list_properties:
     entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
     page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
@@ -194,17 +198,6 @@ widgets:
             - website
             - blog
             - user
-            - system
-    ma_custom_sidebar_widget:
-        order:    2
-        label:    Custom Widget
-        plugin:   $MoreAnalytics
-        template: widget/custom_sidebar_widget.tmpl
-        set: sidebar
-        singular: 1
-        code:     $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_sidebar_widget
-        view:
-            - user
 
 tags:
     block:
@@ -234,22 +227,21 @@ tasks:
     ma_update_object_stats:
         label: MoreAnalytics Updates Object Stats
         code: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_object_stats
-        frequency: sub { 0 }
-        # frequency: $MoreAnalytics::MT::MoreAnalytics::Tasks::update_object_stats_freq
+        frequency: |
+            sub {
+                my %config;
+                MT->component('MoreAnalytics')->load_config(\%config, 'system');
+                $config{update_object_stats_freq_min} * 60;
+            }
     ma_cleanup_cache:
         label: MoreAnalytics Cleanup Cache
         code: $MoreAnalytics::MT::MoreAnalytics::Tasks::cleanup_cache
-        frequency: sub { 0 }
-        # frequency: $MoreAnalytics::MT::MoreAnalytics::Tasks::ucleanup_cache_freq
-
-listing_screens:
-    ma_period:
-        object_label: Aggregation Period
-        primary: title
-        default_sort_key: title
-        permission:
-            permit_action: ma_list_period
-            inherit: 0
+        frequency: |
+            sub {
+                my %config;
+                MT->component('MoreAnalytics')->load_config(\%config, 'system');
+                $config{cleanup_cache_freq_min} * 60;
+            }
 
 stats_providers:
     MoreAnalytics:

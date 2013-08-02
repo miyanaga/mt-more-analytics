@@ -60,17 +60,6 @@
       "outputAbbreviatedPath" : "\/js\/jquery-ui.custom-widget-ck.js",
       "fileType" : 64
     },
-    "\/metrics-and-dimensions\/ja.js" : {
-      "ignoreWasSetByUser" : 0,
-      "ignore" : 1,
-      "hidden" : 0,
-      "outputPathIsSetByUser" : 0,
-      "inputAbbreviatedPath" : "\/metrics-and-dimensions\/ja.js",
-      "outputStyle" : 0,
-      "syntaxCheckerStyle" : 0,
-      "outputAbbreviatedPath" : "\/metrics-and-dimensions\/ja-ck.js",
-      "fileType" : 64
-    },
     "\/js\/more-analytics.js" : {
       "ignoreWasSetByUser" : 0,
       "ignore" : 1,
@@ -80,17 +69,6 @@
       "outputStyle" : 0,
       "syntaxCheckerStyle" : 0,
       "outputAbbreviatedPath" : "\/js\/more-analytics-ck.js",
-      "fileType" : 64
-    },
-    "\/metrics-and-dimensions\/en_US.js" : {
-      "ignoreWasSetByUser" : 0,
-      "ignore" : 1,
-      "hidden" : 0,
-      "outputPathIsSetByUser" : 0,
-      "inputAbbreviatedPath" : "\/metrics-and-dimensions\/en_US.js",
-      "outputStyle" : 0,
-      "syntaxCheckerStyle" : 0,
-      "outputAbbreviatedPath" : "\/metrics-and-dimensions\/en_US-ck.js",
       "fileType" : 64
     },
     "\/js\/jquery-ui.playground.coffee" : {
@@ -104,6 +82,28 @@
       "outputAbbreviatedPath" : "\/js\/jquery-ui.playground.js",
       "outputStyle" : 0,
       "fileType" : 32
+    },
+    "\/metrics-and-dimensions\/ja.js" : {
+      "ignoreWasSetByUser" : 0,
+      "ignore" : 1,
+      "hidden" : 0,
+      "outputPathIsSetByUser" : 0,
+      "inputAbbreviatedPath" : "\/metrics-and-dimensions\/ja.js",
+      "outputStyle" : 0,
+      "syntaxCheckerStyle" : 0,
+      "outputAbbreviatedPath" : "\/metrics-and-dimensions\/ja-ck.js",
+      "fileType" : 64
+    },
+    "\/metrics-and-dimensions\/en_US.js" : {
+      "ignoreWasSetByUser" : 0,
+      "ignore" : 1,
+      "hidden" : 0,
+      "outputPathIsSetByUser" : 0,
+      "inputAbbreviatedPath" : "\/metrics-and-dimensions\/en_US.js",
+      "outputStyle" : 0,
+      "syntaxCheckerStyle" : 0,
+      "outputAbbreviatedPath" : "\/metrics-and-dimensions\/en_US-ck.js",
+      "fileType" : 64
     },
     "\/js\/more-analytics.coffee" : {
       "ignoreWasSetByUser" : 0,

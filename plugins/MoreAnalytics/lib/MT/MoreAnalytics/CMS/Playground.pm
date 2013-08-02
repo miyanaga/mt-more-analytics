@@ -9,7 +9,8 @@ use MT::MoreAnalytics::Request;
 
 sub index {
     my $app = shift;
-    my $blog = $app->blog;
+    my $blog = $app->blog
+        or return $app->return_to_dashboard( redirect => 1 );
     my $blog_id = $blog->id;
     my %param;
 
@@ -74,15 +75,15 @@ sub query {
             && !$user->permissions($app->param('blog_id') || 0)->can_do('ma_playground');
 
     # Max results limit to 1000
-    my $max_results = $hash{'max-results'} || $hash{'max_results'} || 1000;
+    my $max_results = $hash{'max_results'} || 1000;
     $max_results = 1000 if $max_results > 1000;
 
     # Aggregation
-    if ( my $ma_period = delete $hash{'ma-period'} ) {
+    if ( my $ma_period = delete $hash{'ma_period'} || delete $hash{'period'} ) {
         my $period = MT->model('ma_period')->load({basename => $ma_period})
             or return $app->json_error(plugin->translate('Unknown period [_1]', $ma_period));
-        $hash{'start-date'} = $hash{'start_date'} = $period->from_method->format_ga($blog);
-        $hash{'end-date'} = $hash{'end_date'} = $period->to_method->format_ga($blog);
+        $hash{'start_date'} = $period->from_method->format_ga($blog);
+        $hash{'end_date'} = $period->to_method->format_ga($blog);
     }
 
     # Prepare MoreAnalytics provider

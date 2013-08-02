@@ -2,25 +2,39 @@
 
 <mt:setvarblock name="page_title"><__trans phrase="Google Analytics API Playground"></mt:setvarblock>
 <mt:setvarblock name="html_head" append="1">
-<mt:ignore>
-  <link rel="stylesheet" type="text/css" href="<$mt:var name="static_uri"$>css/listing.css?v=<mt:var name="mt_version_id" escape="url">" />
-</mt:ignore>
+  <style type="text/css">
+    .tagify { min-width: 400px; }
+    #template-snipet { width: 100%; }
+  </style>
 </mt:setvarblock>
 <mt:setvarblock name="js_include" append="1">
   <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/jquery-textext.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
   <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/more-analytics.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
   <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/metrics-and-dimensions/<mt:var name='metrics_and_dimensions_lang' escape='html'>.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
+  <script type="text/javascript" src="<$mt:var name="static_uri"$>plugins/MoreAnalytics/js/jquery-ui.playground.js?v=<mt:var name="more_analytics_version_id" escape="URL">"></script>
 </mt:setvarblock>
 
 <mt:include name="include/header.tmpl" id="header-include">
 
-<form action="#" method="post">
+<form id="playground-ui" action="#" method="post">
+
+  <mtapp:setting
+    id="ma-period"
+    label="<__trans phrase='Aggregation Period'>"
+  >
+    <select name="ma_period_id" id="ma-period" class="period api-param">
+      <mt:loop name="ma_period_loop">
+        <option value="<mt:var name='basename' escape='html'>"<mt:if name="is_selected"> selected="selected"</mt:if>><mt:var name="name" escape="html"></option>
+      </mt:loop>
+      <option value=""><__trans phrase="Set as below"></option>
+    </select>
+  </mtapp:setting>
 
 <div class="tabs-container" id="requests">
   <ul class="tabs">
     <li class="tab"><a href="#requests-fields"><__trans phrase="Fields"></a></li>
     <li class="tab"><a href="#requests-filters"><__trans phrase="Filters"></a></li>
-    <li class="tab"><a href="#requests-periods"><__trans phrase="Aggregation Period"></a></li>
+    <li class="tab periods"><a href="#requests-periods"><__trans phrase="Aggregation Period"></a></li>
     <li class="tab"><a href="#requests-options"><__trans phrase="Options"></a></li>
   </ul>
 
@@ -28,19 +42,19 @@
     <mtapp:setting
       id="metrics"
       label="<__trans phrase='Metrics'>">
-      <input type="text" name="metrics" class="api-param" id="metrics" style="min-width:400px">
+      <input type="text" name="metrics" class="metrics tagify" id="metrics" style="min-width:400px">
     </mtapp:setting>
 
     <mtapp:setting
       id="dimensions"
       label="<__trans phrase='Dimensions'>">
-      <input type="text" name="dimensions" class="api-param" id="dimensions" style="min-width:400px">
+      <input type="text" name="dimensions" class="dimensions tagify" id="dimensions" style="min-width:400px">
     </mtapp:setting>
 
     <mtapp:setting
       id="sort"
       label="<__trans phrase='Sort'>">
-      <input type="text" name="sort" class="api-param" id="sort" style="min-width:400px">
+      <input type="text" name="sort" class="sort tagify" id="sort" style="min-width:400px">
     </mtapp:setting>
       
   </div>
@@ -49,56 +63,45 @@
     <mtapp:setting
       id="filters"
       label="<__trans phrase='Filters'>">
-      <textarea name="filters" class="text low api-param" id="filters"></textarea>
+      <textarea name="filters" class="text low api-param filters" id="filters"></textarea>
     </mtapp:setting>
 
   </div>
 
-  <div id="requests-periods">
-    <mtapp:setting
-      id="ma-period"
-      label="<__trans phrase='Aggregation Period'>"
-    >
-      <select name="ma_period_id" id="ma-period">
-        <mt:loop name="ma_period_loop">
-          <option value="<mt:var name='basename' escape='html'>"<mt:if name="is_selected"> selected="selected"</mt:if>><mt:var name="name" escape="html"></option>
-        </mt:loop>
-        <option value=""><__trans phrase="Set as below"></option>
-      </select>
-    </mtapp:setting>
+  <div id="requests-periods" class="periods">
 
     <mtapp:setting
       id="start-date"
       label="<__trans phrase='Start Date'>">
-      <input type="text" class="text date text-date" id="start-date" name="start_date" value="">
+      <input type="text" class="text date text-date start-date" id="start-date" name="start_date" value="">
     </mtapp:setting>
 
     <mtapp:setting
       id="end-date"
       label="<__trans phrase='End Date'>">
-      <input type="text" class="text date text-date" id="end-date" name="end_date" value="">
+      <input type="text" class="text date text-date end-date" id="end-date" name="end_date" value="">
     </mtapp:setting>
 
   </div>
 
   <div id="requests-options">
     <mtapp:setting
-      id="profile"
+      id="ids"
       label="<__trans phrase='Profile'>">
-      <select name="ids" class="api-param" id="profiles">
+      <select name="ids" class="api-param ids" id="ids">
       </select>
     </mtapp:setting>
 
     <mtapp:setting
       id="start-index"
       label="<__trans phrase='Start Index'>">
-      <input type="text" class="text num api-param" name="start_index" id="start-index" value="1">
+      <input type="text" class="text num api-param start-index" name="start_index" id="start-index" value="">
     </mtapp:setting>
 
     <mtapp:setting
       id="max-results"
       label="<__trans phrase='Max Results'>">
-      <input type="text" class="text num api-param" name="max_results" id="max-results" value="1000">
+      <input type="text" class="text num api-param max-results" name="max_results" id="max-results" value="1000">
     </mtapp:setting>
 
   </div>
@@ -116,272 +119,53 @@
 
   <mtapp:statusmsg
      id="query-error"
-     class="error hidden"
+     class="error hidden query-error"
      can_close="0">
   </mtapp:statusmsg>
 
     <div class="filter-block">
       <div class="filter-header">
         <div class="mod">
-          <button id="run-query" type="button" class="action primary button"><__trans phrase="Run Query"></button>
+          <button id="reload" type="button" class="action primary button reload"><__trans phrase="Reload"></button>
+          <img src="<$mt:var name="static_uri"$>images/indicator.white.gif" class="loading hidden">
         </div>
       </div>
     </div>
 
     <div class="listing-table-block">
       <table class="listing-table">
-        <thead id="listing-thead">
-          <tr id="listing-thead-row">
+        <thead class="listing-thead">
+          <tr class="listing-thead-row">
           </tr>
         </thead>
-        <tbody id="listing-tbody">
+        <tbody class="listing-tbody">
         </tbody>
       </table>
     </div>
   </div>
   <div id="results-template">
-    <mtapp:setting
-      id="template"
-      label="<__trans phrase='Example Template'>">
-      <textarea name="template" class="text high" id="template" readonly="readonly"></textarea>
-    </mtapp:setting>
+    <textarea name="template" class="text high template-snipet" id="template-snipet" readonly="readonly"></textarea>
   </div>
 </div>
 
+</form>
+
 <mt:setvarblock name="jq_js_include">
+
 (function($) {
-
-  var cgiUrl = '<mt:CGIPath><mt:AdminScript>';
-
-  // Lexicon
-  var dimensions = {},
-    metrics = {},
-    all = {};
-
-  $.each($.MoreAnalyticsL10N.lexicon.metrics, function(key, value) {
-    var label = key + '=' + value.l + '/' + value.g;
-    metrics[label] = true;
-    all[label] = true;
-  });
-  $.each($.MoreAnalyticsL10N.lexicon.dimensions, function(key, value) {
-    var label = key + '=' + value.l + '/' + value.g;
-    dimensions[label] = true;
-    all[label] = true;
-  });
-
   // Tabify
   $('.tabs-container').tabs();
 
-  // Load other profiles
-  $.post( cgiUrl, {
-    __mode: 'ma_profiles',
-    blog_id: <mt:var name="blog_id">
-  })
-    .done(function(data, jqXHR) {
-      $('#profiles').append($(data).children());
-    })
-    .fail(function(jqXHR) {
-      console.log(jqXHR);
-    });
-
-  var opts = {
-    plugins: 'tags autocomplete',
-  };
-
-  // Tagify
-  $('#metrics').textext(opts).on({
-    getSuggestions: function(e, data) {
-      var re = new RegExp(data.query, 'i');
-      var results = [];
-      $.each(metrics, function(label) {
-        if ( label.match(re) ) results.push(label);
-      });
-
-      $(this).trigger('setSuggestions', {
-        result: results,
-        showHideDropdown: true
-      });
-    },
-    isTagAllowed: function(e, data) {
-      data.result = metrics[data.tag] ? true : false;
-    }
+  $('#playground-ui').maPlayground({
+    blogId: '<mt:var name="blog_id">',
+    cgiUri: '<mt:CGIPath><mt:AdminScript>',
+    metrics: $.MoreAnalyticsL10N.lexicon.metrics,
+    dimensions: $.MoreAnalyticsL10N.lexicon.dimensions,
+    unknownLabe: '<__trans phrase="Unknown">'
   });
 
-  $('#dimensions').textext(opts).on({
-    getSuggestions: function(e, data) {
-      var re = new RegExp(data.query, 'i');
-      var results = [];
-      $.each(dimensions, function(label) {
-        if ( label.match(re) ) results.push(label);
-      });
-
-      $(this).trigger('setSuggestions', {
-        result: results,
-        showHideDropdown: true
-      });
-    },
-    isTagAllowed: function(e, data) {
-      data.result = dimensions[data.tag] ? true : false;
-    }
-  });
-
-  $('#sort').textext(opts).on({
-    getSuggestions: function(e, data) {
-      var q = data.query.replace(/^-/, '');
-      var re = new RegExp(q, 'i');
-      var results = [];
-      $.each(all, function(label) {
-        if ( label.match(re) ) {
-          if ( !data.query.match(/^-/) )
-            results.push(label + '<__trans phrase="(Asc)">');
-          results.push('-' + label + '<__trans phrase="(Desc)">');
-        }
-      });
-
-      $(this).trigger('setSuggestions', {
-        result: results,
-        showHideDropdown: true
-      });
-    },
-    isTagAllowed: function(e, data) {
-      var tag = data.tag,
-        reAsc = new RegExp('<__trans phrase="\\(Asc\\)">$'),
-        reDesc = new RegExp('<__trans phrase="\\(Desc\\)">$'),
-        reMinus = /^\-/;
-      tag = tag.replace(reAsc, '');
-      tag = tag.replace(reDesc, '');
-      tag = tag.replace(reMinus, '');
-
-      data.result = all[tag] ? true : false;
-    }
-  });
-
-  var tagifyValues = function() {
-    var fields = {};
-    $.each(['metrics', 'dimensions', 'sort'], function(i, f) {
-      try {
-        var $elements = $('#' + f).textext()[0].tags().tagElements();
-        var cols = [];
-        $elements.find('span.text-label').each(function() {
-          cols.push($(this).text());
-        });
-
-        var normalized = [];
-        $.each(cols, function(j, c) {
-          if ( c.match(/^(-?[a-z0-9]+)/i) )
-            normalized.push(RegExp.$1);
-        });
-        fields[f + '_array'] = normalized;
-
-        fields[f] = normalized.join(',');
-      } catch(e) {
-        console.log(e);
-      }
-
-    });
-
-    console.log(fields);
-    return fields;
-  };
-
-  var getParams = function() {
-    var fields = tagifyValues();
-
-    $.each( ['ids', 'start-index', 'max-results', 'start-date', 'end-date', 'ma-period'], function(i, p) {
-      var value = $('#' + p).val();
-      if ( value !== undefined && value.length ) {
-        fields[p] = value;
-      }
-    });
-
-    return fields;
-  };
-
-  var updateTemplateTag = function() {
-    var params = getParams();
-    var template = '';
-    template += '<' + 'mt:GAReport ';
-    $.each(['ids', 'metrics', 'dimensions', 'sort', 'start-index', 'max-results'], function(i, p) {
-      var val = params[p];
-      var name = p.replace(/-/g, '_');
-      if ( val !== undefined && val.length > 0 ) {
-        template += name + '="';
-        template += val;
-        template += '" ';
-      }
-    });
-    template += ">\n";
-
-    template += "\n</" + 'mt:GAReport>';
-
-    $('#template').val(template);
-  };
-
-  var updateListing = function() {
-    var params = getParams();
-    params['__mode'] = 'ma_playground_query';
-    params['blog_id'] = "<mt:var name='blog_id'>";
-
-    $('#query-error').addClass('hidden');
-
-    $.post('<mt:CGIPath><mt:AdminScript>', params)
-      .done(function(data, jqXHR) {
-        console.log(data);
-        if ( data.error ) {
-          $('#query-error')
-            .removeClass('hidden')
-            .find('.msg-text')
-            .text(data.error);
-          return;
-        }
-        
-        // Headers
-        var $headers = $('#listing-thead-row');
-        $headers.children().remove();
-        $.each(data.result.headers, function(i, h) {
-          var $th = $('<th class="col head"><div class="col-label key" /></th>');
-          $th.find('.key').text(h);
-          var lex = $.MoreAnalyticsL10N.lexicon.metrics[h] || $.MoreAnalyticsL10N.lexicon.dimensions[h];
-          if ( lex ) {
-            $th.append($('<div class="col-label label" />').text(lex.l));
-          }
-          $headers.append($th);
-        });
-
-        // Values
-        var $tbody = $('#listing-tbody');
-        $tbody.children().remove();
-        $.each(data.result.items, function(i, r) {
-          var $tr = $('<tr />');
-          $.each(data.result.headers, function(j, h) {
-            var $td = $('<td class="col" />').text(r[h]);
-            $tr.append($td);
-          });
-          $tbody.append($tr);
-        });
-      })
-      .fail(function(jqXHR) {
-        $('#query-error')
-          .removeClass('hidden')
-          .find('.msg-text')
-          .text(jqXHR.statusText);        
-        return;
-      });
-  };
-
-  // On change
-  $('.api-param').on('change', function() {
-    updateTemplateTag();
-    updateListing();
-  });
-
-  // Run Query
-  $('#run-query').click(function() {
-    updateTemplateTag();
-    updateListing();
-    return false;
-  });
 })(jQuery);
+
 </mt:setvarblock>
 
 <mt:include name="include/footer.tmpl" id="footer-include">
