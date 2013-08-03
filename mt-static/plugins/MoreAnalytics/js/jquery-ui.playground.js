@@ -161,7 +161,7 @@
       var params,
         _this = this;
       params = {};
-      $.each(['ids', 'period', 'filters', 'start-index', 'max-results'], function(i, id) {
+      $.each(['ids', 'period', 'filters', 'start-index', 'start-date', 'end-date', 'max-results'], function(i, id) {
         var cls, p, v;
         console.log(id);
         cls = '.' + id;

@@ -31,6 +31,12 @@ sub update_object_stats {
     my $task = shift;
     my $app = MT->instance;
 
+    # Update update soon flag
+    treat_config( sub {
+        my $config = shift;
+        $config->{update_object_stats_soon} = 0;
+    }, 'system' );
+
     my $iter = MT->model('blog')->load_iter( { class => '*' } )
         or return;
 

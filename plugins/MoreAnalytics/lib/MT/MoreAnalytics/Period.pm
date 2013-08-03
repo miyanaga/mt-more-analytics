@@ -103,6 +103,16 @@ sub long_name {
     );
 }
 
+sub on_post_save {
+    my ( $cb, $self ) = @_;
+    treat_config( sub {
+        my $config = shift;
+        $config->{update_object_stats_soon} = 1;
+    });
+
+    1;
+}
+
 sub list_props {
     my $props = {
         name => {

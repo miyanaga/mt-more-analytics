@@ -129,7 +129,7 @@ $.widget 'ui.maPlayground',
     params = {}
 
     # Single values
-    $.each ['ids', 'period', 'filters', 'start-index', 'max-results'], (i, id) =>
+    $.each ['ids', 'period', 'filters', 'start-index', 'start-date', 'end-date', 'max-results'], (i, id) =>
       console.log id
       cls = '.' + id
       v = @container.find(cls).val()

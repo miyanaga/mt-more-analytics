@@ -142,7 +142,7 @@ These are typical template tags of Movable Type. MoreAnalytics plugin expand the
 
 You can refer metrics about entries and pages in each context.
 
-    <mt:EntryTitle>: <mt:GAEntryStat name="exitRate" sprintf="%0.2f%%">
+    <mt:EntryTitle>: <mt:GAEntryStat name="exit_rate" sprintf="%0.2f%%">
 
 ## Object Stats and Aggregation Period
 

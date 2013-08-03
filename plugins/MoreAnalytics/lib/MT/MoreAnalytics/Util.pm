@@ -6,7 +6,7 @@ use warnings;
 use base qw(Exporter);
 use MT::Util qw(format_ts epoch2ts);
 
-our @EXPORT = qw(plugin _stderr _dumper);
+our @EXPORT = qw(plugin treat_config _stderr _dumper);
 our @EXPORT_OK = qw(
     actual_config
     md5_hash
@@ -41,6 +41,18 @@ sub plugin {
 
     # The component
     MT->component('MoreAnalytics');
+}
+
+sub treat_config {
+    my ( $callback, $scope ) = @_;
+    $scope ||= 'system';
+
+    my %config;
+    plugin->load_config(\%config, $scope);
+    my $result = $callback->( \%config );
+    plugin->save_config(\%config, $scope);
+
+    $result;
 }
 
 sub actual_config {

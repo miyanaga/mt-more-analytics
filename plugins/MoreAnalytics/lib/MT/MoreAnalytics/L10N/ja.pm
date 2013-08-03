@@ -155,6 +155,9 @@ use vars qw( %Lexicon );
     '%0.2f Sec.' => '%0.2f秒',
     '_DATE_FORMAT' => '%Y年%m月%d日',
 
+    # lib/MT/MoreAnalytics/CMS/Listing.pm
+    ' - Uncollected' => ' - 未集計',
+
     # lib/MT/MoreAnalytics/CMS/Widget.pm
     'Permission denigied.' => 'この操作を行う権限はありません。',
     'Unknown action' => '不明なアクションです。',

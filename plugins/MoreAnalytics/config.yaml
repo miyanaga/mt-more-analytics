@@ -12,6 +12,9 @@ settings:
     update_object_stats_freq_min:
         Scope: system
         Default: 180
+    update_object_stats_soon:
+        Scope: system
+        Default: 0
     cleanup_cache_freq_min:
         Scope: system
         Default: 1440
@@ -129,12 +132,13 @@ listing_screens:
             inherit: 0
 
 list_properties:
-    entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
-    page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::entry_list_props
+    entry: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::entry_list_props
+    page: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::entry_list_props
     ma_period: $MoreAnalytics::MT::MoreAnalytics::Period::list_props
 
 callbacks:
     post_init: $MoreAnalytics::MT::MoreAnalytics::on_post_init
+    MT::MoreAnalytics::Period::post_save: $MoreAnalytics::MT::MoreAnalytics::Period::on_post_save
 
 applications:
     cms:
@@ -149,9 +153,9 @@ applications:
             cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_edit_period
             cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_save_filter_period
             cms_pre_save.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_pre_save_period
-            template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_template_param_list_common
-            cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
-            cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::App::CMS::on_pre_load_filtered_list_entry
+            template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_template_param_list_common
+            cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
+            cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
         content_actions:
             ma_period:
                 new_peiod:
@@ -231,6 +235,7 @@ tasks:
             sub {
                 my %config;
                 MT->component('MoreAnalytics')->load_config(\%config, 'system');
+                return 0 if $config{update_object_stats_soon};
                 $config{update_object_stats_freq_min} * 60;
             }
     ma_cleanup_cache:
