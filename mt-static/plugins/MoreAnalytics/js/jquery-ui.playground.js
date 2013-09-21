@@ -256,17 +256,13 @@
       }).fail(function(jqXHR) {
         return _this._showQueryError(jqXHR.statusText);
       }).done(function(data, jqXHR) {
-        var $th;
         if (data.error != null) {
           _this._showQueryError(data.error);
           return;
         }
         console.log(data);
-        $th = $('<th class="col head cb"><span class="col-label" /></th>');
-        $th.find('.col-label').text(_this.options.indexLabel);
-        $headers.append($th);
         $.each(data.result.headers, function(i, h) {
-          var label, lex;
+          var $th, label, lex;
           $th = $('<th class="col head"><div class="col-label key" /></th>');
           $th.find('.key').text(h);
           lex = _this.options.metrics[h] || _this.options.dimensions[h];
@@ -277,11 +273,10 @@
           return $headers.append($th);
         });
         return $.each(data.result.items, function(i, item) {
-          var $td, $tr;
+          var $tr;
           $tr = $('<tr />');
-          $td = $('<td class="col" />').text(i + 1);
-          $tr.append($td);
           $.each(data.result.headers, function(j, h) {
+            var $td;
             $td = $('<td class="col" />').text(item[h]);
             return $tr.append($td);
           });
