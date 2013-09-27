@@ -1,0 +1,151 @@
+more_analytics_simple_report:
+    id: more_analytics_simple_report
+    label: Simple Access Report
+    description: <__trans phrase="A simple access stats report for any site.">
+    author_name: ideaman's Inc.
+    author_link: http://www.ideamans.com/
+    version: 0.9
+    class: website
+    static_path: static
+    l10n_class: MT::MoreAnalytics
+    thumbnail_file: thumb.png
+    thumbnail_file_medium: thumb-medium.png
+    thumbnail_file_small: thumb-small.png
+    elements:
+        template_set:
+            component: core
+            importer: template_set
+            name: Template Set
+            data:
+                label: Simple Access Report
+                base_path: templates/website
+                require: 1
+                templates:
+                    index:
+                        main_index:
+                            label: Main Index
+                            outfile: index.html
+                            rebuild_me: 1
+                        blog_index:
+                            label: Blog Index
+                            outfile: blogs/index.html
+                            rebuild_me: 1
+                        archive_index:
+                            label: Archive Index
+                            outfile: archives.html
+                            rebuild_me: 1
+                        styles:
+                            label: Stylesheet
+                            outfile: styles.css
+                            rebuild_me: 1
+                        javascript:
+                            label: JavaScript
+                            outfile: mt.js
+                            rebuild_me: 1
+                        feed_recent:
+                            label: Feed - Recent Entries
+                            outfile: atom.xml
+                            rebuild_me: 1
+                        rsd:
+                            label: RSD
+                            outfile: rsd.xml
+                            rebuild_me: 1
+                    archive:
+                        entry_listing:
+                            label: Entry Listing
+                            mappings:
+                                monthly:
+                                    archive_type: Monthly
+                                category:
+                                    archive_type: Category
+                    individual:
+                        entry:
+                            label: Entry
+                            mappings:
+                                entry_archive:
+                                    archive_type: Individual
+                    page:
+                        page:
+                            label: Page
+                            mappings:
+                                page_archive:
+                                    archive_type: Page
+                    module:
+                        header:
+                            label: Header
+                        footer:
+                            label: Footer
+                        navigation:
+                            label: Navigation
+                        categories:
+                            label: Categories
+                        comment_detail:
+                            label: Comment Detail
+                        comment_form:
+                            label: Comment Form
+                        comments:
+                            label: Comments
+                        entry_detail:
+                            label: Entry Detail
+                        entry_metadata:
+                            label: Entry Metadata
+                        entry_summary:
+                            label: Entry Summary
+                        page_detail:
+                            label: Page Detail
+                        sidebar:
+                            label: Sidebar
+                        tags:
+                            label: Tags
+                        trackbacks:
+                            label: TrackBacks
+                        signin:
+                            label: Sign In
+                        search:
+                            label: Search
+                        footer_links:
+                            label: Footer Links
+                        powered_by_footer:
+                            label: Powered By (Footer)
+                    system:
+                        comment_listing:
+                            label: Comment Listing
+                            description: Improved listing of comments.
+                        comment_preview:
+                            label: Comment Preview
+                        comment_response:
+                            label: Comment Response
+                        dynamic_error:
+                            label: Dynamic Error
+                        popup_image:
+                            label: Popup Image
+                        search_results:
+                            label: Search Results
+                    widget:
+                        blogs:
+                            label: Blogs
+                        recent_entries_expanded:
+                            label: Recent Entries Expanded
+                        syndication:
+                            label: Syndication
+                        tag_cloud:
+                            label: Tag Cloud
+                        pages_list:
+                            label: Page Listing
+                        openid:
+                            label: OpenID Accepted
+                    widgetset:
+                        main_sidebar:
+                            order: 1000
+                            label: Main Sidebar
+                            widgets:
+                                - Blogs
+                                - Tag Cloud
+                        blog_activity:
+                            order: 1000
+                            label: Blog Activity
+                            widgets:
+                                - Recent Entries Expanded
+                                - OpenID Accepted
+                                - Syndication
+
