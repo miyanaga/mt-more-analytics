@@ -392,7 +392,7 @@ sub hdlr_Entries {
                     object_ds => 'entry',
                 }, { fetchonly => \@only });
 
-                # Pad head with 0 to sort with cmp in original mt:Entries
+                # Pad head with 0 to sort as string with `cmp` in original mt:Entries
                 # FIXME!!
                 $values{$_} = ( '0' x ($max_len - length($values{$_})) ) . $values{$_}
                     foreach keys %values;
