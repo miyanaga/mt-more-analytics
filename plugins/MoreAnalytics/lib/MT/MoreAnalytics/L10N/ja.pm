@@ -31,6 +31,12 @@ use vars qw( %Lexicon );
     'periods' => '集計期間',
 
 
+    # thtmes.yaml
+    'Simple Access Report'
+        => 'アクセス解析シンプルレポート',
+    'A simple access stats report for any site.'
+        => 'あらゆるサイトに対して適用できるシンプルなアクセス解析レポートです。',
+
     # tmpl/playground.tmpl
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
     'Profile' => 'プロファイル',
