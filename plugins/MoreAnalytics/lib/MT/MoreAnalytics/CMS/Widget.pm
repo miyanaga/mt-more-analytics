@@ -90,7 +90,7 @@ sub custom_widget_ajax {
     if ( $action eq 'edit' ) {
 
         # Return raw template
-        return $app->json_result({template => $current_template || 'welcome'});
+        return $app->json_result({template => $current_template || ''});
     } elsif ( $action eq 'save' or $action eq 'preview' or $action eq 'view' ) {
 
         # Template is current or passed
