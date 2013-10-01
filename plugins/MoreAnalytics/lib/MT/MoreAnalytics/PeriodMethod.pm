@@ -14,7 +14,7 @@ sub create {
     $id or die 'Requires period method id';
 
     my $self = $pkg->new;
-    my $opts = MT->registry('period_methods', $id)
+    my $opts = MT->registry('more_analytics', 'period_methods', $id)
         or die "Unknown period method id: $id";
 
     $self->id($id);
@@ -113,7 +113,7 @@ sub template {
 sub all_methods {
     my $pkg = shift;
     my ( $for ) = @_;
-    my $methods = MT->registry('period_methods') || {};
+    my $methods = MT->registry('more_analytics', 'period_methods') || {};
 
     my @all = sort {
         ( $a->opts('order') || 1000 ) <=> ( $b->opts('order') || 1000 );

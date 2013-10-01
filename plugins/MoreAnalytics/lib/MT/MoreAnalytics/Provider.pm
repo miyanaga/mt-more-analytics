@@ -7,7 +7,8 @@ use base qw(GoogleAnalytics::Provider);
 
 use HTTP::Request::Common;
 use GoogleAnalytics::OAuth2 qw(effective_token get_profiles);
-use MT::MoreAnalytics::Util qw(actual_config md5_hash are_all_days_past);
+use MT::Util;
+use MT::MoreAnalytics::Util;
 
 *new_ua = *GoogleAnalytics::Provider::new_ua;
 *translate = *GoogleAnalytics::Provider::translate;
@@ -46,20 +47,40 @@ sub _request {
     # Deferent from original
     $params->{ids} ||= 'ga:' . $config->{profile_id};
 
+    # Normalize date format
+    foreach my $key ( qw/start end/ ) {
+        my $k = "$key-date";
+        my $v = $params->{$k} or next;
+        if ( $v =~ m/^\d{4}-\d{2}-\d{2}$/ ) {
+
+            # Right format
+        } elsif ( $v =~ m/^(\d{4})(\d{2})(\d{2})(\d{6})$/ ) {
+
+            # MT Timestamp to date
+            $params->{$k} = join('-', $1, $2, $3);
+        } elsif ( $v =~ m/^\d+$/ ) {
+
+            # Maybe epoch time
+            $params->{$k} = MT::Util::epoch2ts(undef, $v, 1);
+        }
+    }
+
     my $uri = URI->new('https://www.googleapis.com/analytics/v3/data/ga');
     $uri->query_form($params);
 
     # Make cacheable
-    my $serial = md5_hash( $uri->as_string );
+    my $serial = MT::MoreAnalytics::Util::md5_hash( $uri->as_string );
     my $json;
 
+    my $token_type = $token->{data}->{token_type} || '';
+    my $access_token = $token->{data}->{access_token} || '';
     if ( my $cache = MT->model('ma_cache')->lookup( ns => 'ga_report', serial => $serial ) ) {
         $json = $cache->text;
     } else {
         my $ua  = new_ua();
         my $res = $ua->request(
             GET($uri,
-                Authorization => "$token->{token_type} $token->{access_token}"
+                Authorization => "$token->{data}->{token_type} $token->{data}->{access_token}"
             )
         );
 
@@ -77,8 +98,8 @@ sub _request {
 
         $json = Encode::decode( 'utf-8', $res->content );
 
-        my $ma_config = actual_config($self->blog);
-        my $expires = are_all_days_past( $self->blog,
+        my $ma_config = MT::MoreAnalytics::Util::actual_config($self->blog);
+        my $expires = MT::MoreAnalytics::Util::are_all_days_past( $self->blog,
                 $params->{'start-date'}, $params->{'end-date'}
             ) ? $ma_config->{cache_expires_for_past}
                 : $ma_config->{cache_expires_for_future};

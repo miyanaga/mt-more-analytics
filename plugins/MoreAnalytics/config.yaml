@@ -7,6 +7,10 @@ version: 0.4.0
 schema_version: 0.11
 l10n_class: MT::MoreAnalytics::L10N
 system_config_template: config/system.tmpl
+blog_config_template:
+    code: $MoreAnalytics::MT::MoreAnalytics::CMS::Config::blog_config
+
+more_analytics: more_analytics.yaml
 
 settings:
     update_object_stats_freq_min:
@@ -21,6 +25,20 @@ settings:
     cache_size_limit_mb:
         Scope: system
         Default: 100
+    inherit_ka_ignore_keywords:
+        Scope: blog
+        Default: 1
+    ka_ignore_keywords:
+        Default: ''
+    inherit_ka_ignore_regex:
+        Scope: blog
+        Default: 1
+    ka_ignore_regex:
+        Default: ''
+
+config_setting:
+    MoreAnalyticsKeywordCounts:
+        Default: 10,20,30,50,100
 
 permissions:
     website.ma_edit_custom_widget:
@@ -79,38 +97,6 @@ permissions:
             - blog.ma_manage_period
             - blog.ma_playground
 
-period_methods:
-    yesterday:
-        available_for:
-            to: 1
-        label: Yesterday(The last day)
-        order: 100
-        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_yesterday
-        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_yesterday
-        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
-    today:
-        available_for:
-            to: 1
-        label: Today(The day)
-        order: 200
-        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_today
-        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_today
-        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
-    days_before:
-        label: Days before
-        order: 300
-        template: period_methods/days_before.tmpl
-        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_days_before
-        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_days_before
-        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_days_before
-    fixed:
-        label: Fixed date
-        order: 400
-        template: period_methods/fixed.tmpl
-        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_fixed
-        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_fixed
-        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_fixed
-
 object_types:
     ma_cache: MT::MoreAnalytics::Cache
     ma_object_stat: MT::MoreAnalytics::ObjectStat
@@ -121,6 +107,7 @@ object_types:
         ma_custom_widget: text meta
     author:
         ma_custom_widget: text meta
+        ma_ka_prefs: hash meta
 
 listing_screens:
     ma_period:
@@ -149,6 +136,8 @@ applications:
             ma_profiles: $MoreAnalytics::MT::MoreAnalytics::App::CMS::profiles
             ma_custom_widget: $MoreAnalytics::MT::MoreAnalytics::CMS::Widget::custom_widget_ajax
             ma_drop_all_caches: $MoreAnalytics::MT::MoreAnalytics::App::CMS::drop_all_caches
+            ma_ka_keywords: $MoreAnalytics::MT::MoreAnalytics::CMS::KeywordAssistant::ma_ka_keywords
+            ma_ka_save: $MoreAnalytics::MT::MoreAnalytics::CMS::KeywordAssistant::ma_ka_save
         callbacks:
             cms_edit.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_edit_period
             cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_save_filter_period
@@ -156,6 +145,7 @@ applications:
             template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_template_param_list_common
             cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
             cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
+            template_param.edit_entry: $MoreAnalytics::MT::MoreAnalytics::CMS::KeywordAssistant::on_template_param_edit_entry
         content_actions:
             ma_period:
                 new_peiod:

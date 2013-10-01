@@ -23,7 +23,6 @@ my %OBSERVE_MAP = map {
 sub update_object_stats_freq {
     my %config;
     plugin->load_config(\%config, 'system');
-    _dumper('reach');
     $config{update_object_stats_freq_min} * 60;
 }
 

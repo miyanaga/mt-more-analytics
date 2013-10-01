@@ -1,0 +1,288 @@
+
+<style type="text/css">
+.panel {
+    clear: both;
+}
+.panel.controls {
+    padding: 0 0 5px 0;
+}
+.put-right {
+    float: right;
+}
+.hide-at-first {
+    display: none;
+}
+.ma-ka-options {
+    border: 1px solid #c0c6c9;
+    padding: 4px;
+}
+.ma-ka-keywords-table {
+    border-top: 1px #e6e6e6 solid;
+    margin-top: 8px;
+    width: 100%;
+}
+.ma-ka-keywords-table td {
+    height: 1.5em;
+    max-width: 150px;
+    word-wrap: break-word;
+}
+.ma-ka-keywords-table tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+.ma-ka-keywords-table .value,
+.ma-ka-keywords-table .num {
+    text-align: right;
+}
+.ma-ka-keywords-table .num {
+    padding-right: 0.5em;
+}
+.ma-ka-loading {
+    width: 100%;
+    height: 120px;
+    background-image: url(<mt:var name="static_uri">images/indicator.gif);
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
+</style>
+<script type="text/javascript">
+jQuery(function($) {
+    var $w = $('#ma-keyword-assistant');
+    var results = null;
+
+    function showPanel(show) {
+        $w.find('.ma-ka-' + show).removeClass('hidden');
+    }
+
+    function hidePanel(hide) {
+        $w.find('.ma-ka-' + hide).addClass('hidden');
+    }
+
+    function showAndHidePanel(show, hide) {
+        showPanel(show); hidePanel(hide);
+    }
+
+    function showMessage(which, message) {
+        var $element = which == 'error'? $('#ma-ka-error-msg'): $('#ma-ka-success-msg');
+        $element.find('.msg-text').text(message);
+        $element.find('.mt-close-msg').click(function() {
+            $element.hide();
+            return false;
+        });
+        $element.fadeIn('fast');
+    }
+
+    function hideMessage(which) {
+        var $element = which == 'error'? $('#ma-ka-error-msg'): $('#ma-ka-success-msg');
+        $element.fadeOut('fast');
+    }
+
+    function resetMessages() {
+        hideMessage('error');
+        hideMessage('success');
+    }
+
+    function ajax(mode, values, func, always) {
+        values.blog_id = '<mt:var name="blog_id" escape="js">';
+        values.magic_token = '<mt:var name="magic_token" escape="js">';
+        values.__mode = 'ma_ka_' + mode;
+
+        console.log(values);
+
+        $.post('<mt:var name="script_url" escape="html">', values)
+            .done(function(data) {
+                console.log(data);
+
+                if ( typeof data != 'object' ) {
+                    try {
+                        data = $.parseJSON(data);
+                    } catch(ex) {
+                        showMessage('error', '<__trans phrase="JSON parse error.">' + ex);
+                        return;
+                    }
+                }
+
+                if ( typeof data != 'object' ) {
+                    showMessage('error', '<__trans phrase="JSON parse error.">');
+                }
+
+                if ( data.error ) {
+                    showMessage('error', data.error);
+                    return;
+                } else if ( func ) {
+                    return func(data.result);
+                } else {
+                    return;
+                }
+            })
+            .fail(function(jqXHR) {
+                console.log(data);
+
+                showMessage('error', jqXHR.status + ' ' + jqXHR.statusText);
+            })
+            .always(function(jqXHR) {
+                if ( always ) {
+                    always();
+                }
+            });
+    }
+
+    function formAjax(mode, values, func, always) {
+        $('.ma-ka-option').each(function() {
+            var name = $(this).attr('name');
+            var val;
+            if ( $(this).attr('type') == 'checkbox' ) {
+                val = $(this).prop('checked') ? $(this).val() : 0;
+            } else {
+                val = $(this).val();
+            }
+            values[name] = val;
+        });
+
+        ajax(mode, values, func, always);
+    }
+
+    function updateKeywords() {
+        resetMessages();
+        showAndHidePanel('loading', 'results');
+
+        formAjax('keywords', {}, function(result) {
+            if ( !result.keywords ) {
+                console.log(result);
+                showMessage('error', '<__trans phrase="Invalid result format.">');
+            }
+
+            var $rows = $w.find('.ma-ka-keywords-table tbody');
+            $rows.children().remove();
+
+            var index = 1;
+            $.each(result.keywords, function(i, v) {
+                var $tr = $('<tr><td class="num" /><td class="keyword" /><td class="value" /></tr>');
+                $tr.find('.num').text(index++);
+                $tr.find('.keyword').text(v.keyword);
+                $tr.find('.value').text(v.value);
+                $rows.append($tr);
+            });
+        }, function() {
+            showAndHidePanel('results', 'loading');
+        });
+    }
+
+    $('#ma-show-body').click(function() {
+        showAndHidePanel('body', 'show-body');
+        ajax('save', { scope: 0, display: 1 } );
+    });
+
+    $('#ma-hide-body').click(function() {
+        showAndHidePanel('show-body', 'body');
+        ajax('save', { scope: 0, display: 0 } );
+    });
+
+    $('#ma-show-options').click(function() {
+        showAndHidePanel('options', 'show-options');
+    });
+
+    $('#ma-hide-options').click(function() {
+        showAndHidePanel('show-options', 'options');
+    });
+
+    $('#ma-save-options').click(function() {
+        resetMessages();
+        showPanel('loading');
+            showMessage('success', '<__trans phrase="Saved.">')
+        formAjax('save', {}, function() {
+        }, function() {
+            hidePanel('loading');
+        });
+    });
+
+    $('.ma-ka-update').change(function() {
+        updateKeywords();
+    });
+
+    <mt:if name="ma_ka_display">
+    showAndHidePanel('body', 'show-body');
+    updateKeywords();
+    </mt:if>
+});
+</script>
+<div class="panels">
+    <div class="panel ma-ka-show-body">
+        <a href="javascript:void(0)" id="ma-show-body" class="icon-log icon-left-wide"><__trans phrase="Show Keywords"></a>
+    </div>
+    <div class="panel ma-ka-body hidden">
+        <div class="panel controls">
+            <a href="javascript:void(0)" id="ma-hide-body" class="icon-remove icon-left-wide put-right"><__trans phrase="Close"></a>
+            <a href="javascript:void(0)" id="ma-show-options" class="ma-ka-show-options icon-settings icon-left-wide"><__trans phrase="Options"></a>
+        </div>
+        <div class="panel ma-ka-options hidden">
+            <mtapp:setting
+                id="ma-ka-metric"
+                label="<__trans phrase='Metric'>"
+                label_class="top-label">
+                <select id="ma-ka-metric" name="ma_ka_metric" class="select ma-ka-option ma-ka-update">
+                    <mt:loop name="ma_ka_metrics">
+                        <option value="<mt:var name='id' escape='html'>"<mt:if name="selected"> selected="selected"</mt:if>><mt:var name="label" escape="html"></option>
+                    </mt:loop>
+                </select>
+            </mtapp:setting>
+
+            <mtapp:setting
+                id="ma-ka-term"
+                label="<__trans phrase='Term'>"
+                label_class="top-label">
+                <select id="ma-ka-term" name="ma_ka_term" class="select ma-ka-option ma-ka-update">
+                    <mt:loop name="ma_ka_terms">
+                        <option value="<mt:var name='id' escape='html'>"<mt:if name="selected"> selected="selected"</mt:if>><mt:var name="label" escape="html"></option>
+                    </mt:loop>
+                </select>
+            </mtapp:setting>
+
+            <mtapp:setting
+                id="ma-ka-keywords"
+                label="<__trans phrase='Keyword Count'>"
+                label_class="top-label">
+                <select id="ma-ka-metric" name="ma_ka_max_results" class="select ma-ka-option ma-ka-update">
+                    <mt:loop name="ma_ka_max_results">
+                        <option value="<mt:var name='value' escape='html'>"<mt:if name="selected"> selected="selected"</mt:if>><mt:var name="value" escape="html"></option>
+                    </mt:loop>
+                </select>
+            </mtapp:setting>
+
+            <div class="panel">
+                <label>
+                    <input type="checkbox" class="cb ma-ka-option" name="ma_ka_scope_all" value="1">
+                    <__trans phrase="Save To All Blogs">
+                </label>
+            </div>
+
+            <div class="panel right hide-options">
+                <a href="javascript:void(0)" id="ma-save-options" class="action primary button"><__trans phrase="Save As Default"></a>
+                <a href="javascript:void(0)" id="ma-hide-options" class="action button"><__trans phrase="Close"></a>
+            </div>
+        </div>
+
+        <div class="panel ma-ka-messages">
+            <mtapp:statusmsg
+                id="ma-ka-success-msg"
+                class="success hide-at-first">
+            </mtapp:statusmsg>
+            <mtapp:statusmsg
+                id="ma-ka-error-msg"
+                class="error hide-at-first">
+            </mtapp:statusmsg>
+        </div>
+
+        <div class="panel ma-ka-loading hidden">
+        </div>
+        <div class="panel ma-ka-results hidden">
+            <table class="ma-ka-keywords-table">
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel right hide-body">
+        </div>
+    </div>
+</div>
+

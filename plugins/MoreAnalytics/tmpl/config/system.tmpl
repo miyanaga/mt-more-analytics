@@ -1,4 +1,19 @@
 <mtapp:settingGroup
+    id="ma-date-calc">
+
+    <h2><__trans phrase="Date Calculation"></h2>
+    <mtapp:setting
+        id="ma-update-object-stats-freq-min"
+        label="<__trans phrase='Update Frequency'>">
+        <input type="text num" name="update_object_stats_freq_min" value="<mt:var name='update_object_stats_freq_min'>">
+        <__trans phrase="Minutes">
+    </mtapp:setting>
+
+</mtapp:settingGroup>
+
+
+
+<mtapp:settingGroup
     id="ma-update-object-stats">
 
     <h2><__trans phrase="Update Object Stats"></h2>
@@ -34,7 +49,7 @@
     <mtapp:setting
         id="ma-drop-all-caches"
         label=" ">
-        <button type="button" id="ma-drop-all-caches"><__trans phrase="Drop All Caches"></button>
+        <button type="button" class="action button" id="ma-drop-all-caches"><__trans phrase="Drop All Caches"></button>
         <span id="ma-drop-all-caches-loading" style="display:none"><__trans phrase="Processing..."></span>
         <script type="text/javascript">
             (function($){
@@ -67,5 +82,6 @@
         </script>
     </mtapp:setting>
 
+    <mt:Include name="config/keyword_assistant.tmpl" component="MoreAnalytics">
 
 </mtapp:settingGroup>
