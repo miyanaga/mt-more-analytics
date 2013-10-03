@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use base qw(Exporter);
-use MT::Util qw(format_ts epoch2ts);
+use MT::Util qw(format_ts epoch2ts ts2epoch);
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
 
@@ -18,7 +18,8 @@ our @EXPORT = qw(
     are_all_days_past
     lookup_fileinfo
     observe_date_range
-    treat_config 
+    treat_config
+    date_diff
 );
 
 my @INHERITABLE_CONFIG = qw(
@@ -173,6 +174,37 @@ sub ga_simple_request {
         or return $eh->error($app->errstr);
 
     $data;
+}
+
+sub normalize2epoch {
+    my ( $blog, $date ) = @_;
+    my $ts;
+
+    if ( $date =~ /^\d{8}$/ ) {
+
+        # Assumes TS
+        $ts = $date;
+    } elsif ( $date =~ m!^(\d+)[\-/](\d+)[\-/](\d+)$! ) {
+
+        # yyyy-mm-dd
+        $ts = sprintf('%04d%02d%02d', $1, $2, $3);
+    } else {
+        return $date;
+    }
+
+    ts2epoch( $blog, $ts, $blog? 1: 0 );
+}
+
+sub date_diff {
+    my ( $blog, $start, $end ) = @_;
+
+    $start = normalize2epoch( $blog, $start );
+    $end = normalize2epoch( $blog, $end );
+
+    my $a_day = 60 * 60 * 24;
+    my $days = int( ( $end - $start ) / $a_day );
+
+    $days;
 }
 
 1;

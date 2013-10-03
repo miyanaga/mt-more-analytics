@@ -5,6 +5,7 @@ use warnings;
 
 use Carp;
 
+use MT::Util;
 use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
@@ -110,44 +111,118 @@ use MT::MoreAnalytics::Request;
 
         $result;
     }
-}
 
-{
-    sub _report_loop {
-        my ( $ctx, $args, $data, $items ) = @_;
+    sub _handle_report_tag {
+        my ( $ctx, $args, $cond, %param ) = @_;
+        my $app = MT->instance;
+        my $blog = $ctx->stash('blog');
 
-        # Loop inside
-        my $builder = $ctx->stash('builder');
-        my $tokens = $ctx->stash('tokens');
-        my $out = '';
-        my $count = scalar @$items;
-        local $ctx->{__stash}{ga_data} = $data;
-        local $ctx->{__stash}{ga_items} = $items;
-        local $ctx->{__stash}{ga_break} = 0;
-        for ( my $i = 0; $i < $count; $i++ ) {
-            my $item = $items->[$i];
+        # FIXME $args will be broken...
+        my $orig_args = $args;
+        my %args = %$args;
+        $args = \%args;
 
-            local $ctx->{__stash}{ga_record} = $item;
-            local $ctx->{__stash}{vars} = {
-                __index__   => $i,
-                __number__  => $i + 1,
-                __count__   => $count,
-                __first__   => ($i == 0)? 1: 0,
-                __even__    => ($i % 2)? 0: 1,
-                __odd__     => ($i % 2)? 1: 0,
-                __last__    => ($i == $count-1)? 1: 0,
-                __break__   => 0,
-            };
+        defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
+            or return;
 
-            defined ( my $line = $builder->build($ctx, $tokens) )
-                or return $ctx->error($builder->errstr);
+        # Fill default period if no date range
+        $args->{period} ||= 'default'
+            if !$args->{start_date} && !$args->{end_date};
 
-            last if $ctx->{__stash}{ga_break};
+        if ( my $ma_period = delete $args->{period} ) {
 
-            $out .= $line;
+            # Set date range if args has period
+            my $period = MT->model('ma_period')->load({basename => $ma_period})
+                or $ctx->error(plugin->translate('Period [_1] is not found.', $ma_period));
+            $args->{start_date} ||= $period->from_method->format_ga($blog);
+            $args->{end_date} ||= $period->to_method->format_ga($blog);
         }
 
-        $out;
+        # Primary metric
+        my $primary_metric;
+        if ( my $metrics = $args->{metrics} ) {
+            my @metrics = split(/\s*,\s*/, $metrics);
+            $primary_metric = shift @metrics;
+        }
+
+        # For sparkline dimensions
+        if ( $args->{sparkline} ) {
+            my $diff = date_diff( $blog, $args->{start_date}, $args->{end_date} );
+            $args->{dimensions} = $diff < 2 ? 'dateHour'
+                : $diff < 32 ? 'date'
+                : $diff < 180 ? 'yearWeek'
+                : $diff < 900 ? 'yearMonth'
+                : 'year';
+        }
+
+        # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
+        $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
+        unless ( $args->{ids} ) {
+            if ( my $profile = $ctx->stash('ga_profile') ) {
+                $args->{ids} = $profile->{id} if $profile->{id};
+            }
+        }
+
+        # Send request
+        my $request = MT::MoreAnalytics::Request->new($args);
+        my $params = $request->normalize;
+        defined ( my $data = $ma->_request( $app, $params ) )
+            or return $ctx->error($app->errstr);
+
+        # Check if items is array
+        my $items = $data->{items};
+        return $ctx->error( plugin->translate('items in results is not an array.') )
+            unless ref $items eq 'ARRAY';
+
+        # Totals
+        my $totals = $data->{totals} || {};
+        my $total_results = $data->{totalResults} || 0;
+
+        # Dump mode
+        return _dump_results( $ctx, $args, $items ) if $args->{_dump};
+
+        # Stash camel formatted request params
+        my %camel_params = map {
+            my $val = $params->{$_};
+            s/_([a-z])/{uc($1)}/ieg;
+            $_ => $val;
+        } keys %$params;
+
+        # Sum up metrics
+        local $ctx->{__stash}{ga_request_params} = { %camel_params, %$params };
+        local $ctx->{__stash}{ga_totals} = $totals;
+        local $ctx->{__stash}{ga_total_results} = $total_results;
+        local $ctx->{__stash}{ga_primary_metric} = $primary_metric;
+
+        # On-demand subtotals
+        my ( %subtotals, %rests );
+        my $subtotaled = 0;
+        local $ctx->{__stash}{ga_ondemand_subtotals} = sub {
+            unless ( $subtotaled ) {
+                my @metrics = split( /\s*,\s*/, $args->{metrics} );
+                foreach my $metric ( @metrics ) {
+                    foreach my $item ( @$items ) {
+                        $subtotals{$metric} = 0 unless defined $subtotals{$metric};
+                        $rests{$metric} = 0 unless defined $rests{$metric};
+
+                        $subtotals{$metric} += $item->{$metric}
+                            if defined $item->{$metric};
+                    }
+
+                    $rests{$metric} = $totals->{$metric} - $subtotals{$metric};
+                }
+
+                $subtotaled = 1;
+            }
+
+            ( \%subtotals, \%rests );
+        };
+
+        local $ctx->{__stash}{ga_data} = $data;
+        local $ctx->{__stash}{ga_items} = $items;
+
+        # FIXME $args broken here - ex) no_loop -> no-loop
+        $param{output}->( $ctx, $orig_args, $data, $items );
     }
 }
 
@@ -163,94 +238,238 @@ sub hdlr_GAIfReady {
 
 sub hdlr_GAReport {
     my ( $ctx, $args, $cond ) = @_;
-    my $app = MT->instance;
-    my $blog = $ctx->stash('blog');
 
-    defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
-        or return;
+    _handle_report_tag( $ctx, $args, $cond,
+        output => sub {
+            my ( $ctx, $args, $data, $items ) = @_;
+            my $builder = $ctx->stash('builder');
+            my $tokens = $ctx->stash('tokens');
+            my $out = '';
 
-    # Fill default period if no date range
-    $args->{period} ||= 'default'
-        if !$args->{start_date} && !$args->{end_date};
+            if ( $args->{no_loop} ) {
 
-    if ( my $ma_period = delete $args->{period} ) {
+                local $ctx->{__stash}{ga_record} = $ctx->{__stash}{ga_totals};
+                defined ( $out = $builder->build($ctx, $tokens) )
+                    or return $ctx->error($builder->errstr);
 
-        # Set date range if args has period
-        my $period = MT->model('ma_period')->load({basename => $ma_period})
-            or $ctx->error(plugin->translate('Period [_1] is not found.', $ma_period));
-        $args->{start_date} ||= $period->from_method->format_ga($blog);
-        $args->{end_date} ||= $period->to_method->format_ga($blog);
-    }
+            } else {
 
-    # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
-    $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
-    unless ( $args->{ids} ) {
-        if ( my $profile = $ctx->stash('ga_profile') ) {
-            $args->{ids} = $profile->{id} if $profile->{id};
-        }
-    }
+                # Loop inside
+                my $count = scalar @$items;
+                local $ctx->{__stash}{ga_break} = 0;
+                for ( my $i = 0; $i < $count; $i++ ) {
+                    my $item = $items->[$i];
 
-    # Send request
-    my $request = MT::MoreAnalytics::Request->new($args);
-    my $params = $request->normalize;
-    defined ( my $data = $ma->_request( $app, $params ) )
-        or return $ctx->error($app->errstr);
+                    local $ctx->{__stash}{ga_record} = $item;
+                    local $ctx->{__stash}{vars} = {
+                        __index__   => $i,
+                        __number__  => $i + 1,
+                        __count__   => $count,
+                        __first__   => ($i == 0)? 1: 0,
+                        __even__    => ($i % 2)? 0: 1,
+                        __odd__     => ($i % 2)? 1: 0,
+                        __last__    => ($i == $count-1)? 1: 0,
+                        __break__   => 0,
+                    };
 
-    # Check if items is array
-    my $items = $data->{items};
-    return $ctx->error( plugin->translate('items in results is not an array.') )
-        unless ref $items eq 'ARRAY';
+                    defined ( my $line = $builder->build($ctx, $tokens) )
+                        or return $ctx->error($builder->errstr);
 
-    # Totals
-    my $totals = $data->{totals} || {};
-    my $total_results = $data->{totalResults} || 0;
+                    last if $ctx->{__stash}{ga_break};
 
-    # Dump mode
-    return _dump_results( $ctx, $args, $items ) if $args->{_dump};
-
-    # Stash camel formatted request params
-    my %camel_params = map {
-        my $val = $params->{$_};
-        s/_([a-z])/{uc($1)}/ieg;
-        $_ => $val;
-    } keys %$params;
-
-    # Sum up metrics
-    local $ctx->{__stash}{ga_request} = \%camel_params;
-    local $ctx->{__stash}{ga_totals} = $totals;
-    local $ctx->{__stash}{ga_total_results} = $total_results;
-
-    # On-demand subtotals
-    my ( %subtotals, %rests );
-    my $subtotaled = 0;
-    local $ctx->{__stash}{ga_ondemand_subtotals} = sub {
-        unless ( $subtotaled ) {
-            my @metrics = split( /\s*,\s*/, $args->{metrics} );
-            foreach my $metric ( @metrics ) {
-                foreach my $item ( @$items ) {
-                    $subtotals{$metric} = 0 unless defined $subtotals{$metric};
-                    $rests{$metric} = 0 unless defined $rests{$metric};
-
-                    $subtotals{$metric} += $item->{$metric}
-                        if defined $item->{$metric};
+                    $out .= $line;
                 }
-
-                $rests{$metric} = $totals->{$metric} - $subtotals{$metric};
             }
 
-            $subtotaled = 1;
-        }
-
-        ( \%subtotals, \%rests );
-    };
-
-    _report_loop( $ctx, $args, $data, $items );
+            $out;
+        },
+    );
 }
 
-sub _hdlr_GAReportBreak {
+sub hdlr_GARequest {
+
+    # Alias to GAReport with no_loop
+    $_[1]->{no_loop} = 1;
+    hdlr_GAReport(@_);
+}
+
+sub hdlr_GAReportBreak {
     my ( $ctx, $args ) = @_;
     $ctx->{__stash}{ga_break} = 1;
     '';
+}
+
+{
+    sub _parse_css_style_attr {
+        my $attr = shift;
+        return {} if !defined($attr) || length($attr) < 1;
+
+        my @tupples = split(/\s*;\s*/, $attr);
+        my %pairs = map {
+            my ( $n, $v ) = split(/\s*:\s*/, $_);
+            ( $n => $v );
+        } @tupples;
+
+        \%pairs;
+    }
+
+    sub _aggregate_hash_attrs {
+        my ( $args, $prefix, $hash ) = @_;
+
+        # Combined pairs
+        my $pairs = _parse_css_style_attr($args->{$prefix});
+        foreach my $k ( keys %$pairs ) {
+            $hash->{$k} = $pairs->{$k}
+                if defined $pairs->{$k};
+        }
+
+        # Single values
+        my $re = qr(^$prefix:(.+?)$); #)
+        foreach my $n ( keys %$args ) {
+            next unless $n =~ $re;
+            $hash->{$1} = $args->{$n};
+        }
+
+        # Convert types
+        foreach my $n ( keys %$hash ) {
+            if ( $n =~ /^\@(.+?)$/ ) {
+                print STDERR $n, "\n";
+                my $actual = $1;
+                print STDERR $n, "\n";
+                my $v = delete $hash->{$n};
+                print STDERR $v, "\n";
+                $hash->{$actual} = [ split(/\s*,\s*/, $v) ];
+            }
+        }
+
+        $hash;
+    }
+}
+
+sub hdlr_GAChart {
+    my ( $ctx, $args ) = @_;
+
+    my $items = $ctx->stash('ga_items')
+        or return $ctx->error(
+            plugin->translate('[_1] is not used in mt:GAReport context.', 'mt:GACharJSON' ) );
+    my $request_params = $ctx->stash('ga_request_params');
+
+    my $x = $args->{x} || $request_params->{dimensions};
+    my $y = $args->{y} || $request_params->{metrics};
+    my $default = $args->{default} || 0;
+
+    my @xs = map { s/^ga://; $_ } split(/\s*,\s*/, $x);
+    $x = shift @xs;
+    my @ys = map { s/^ga://; $_ } split(/\s*,\s*/, $y);
+
+    my @array;
+    foreach my $item ( @$items ) {
+        my %hash;
+        $hash{x} = $item->{$x};
+        for ( my $i = 0; $i < scalar @ys; $i++ ) {
+            my $k = $ys[$i];
+            my $l = 'y';
+            $l .= $i if $i > 0;
+
+            $hash{$l} = $item->{$k};
+            $hash{$l} = $default unless defined $hash{$l};
+        }
+
+        push @array, \%hash;
+    }
+
+    # Finish if requested JSON
+    if ( $args->{as} && lc($args->{as} eq 'json' ) ) {
+        return MT::Util::to_json(\@array);
+    }
+
+    # Build HTML and JavaScript
+
+    # Element ID
+    require Digest::MD5;
+    my $id = $args->{id} || 'ma-chart-' . Digest::MD5::md5_hex(rand());
+    my $class = $args->{class} || '';
+    my $immediate = $args->{immediate} || $args->{ajax};
+    my $jquery = $args->{jquery} || 'jQuery';
+
+    # HTML attributes
+    my $el = $args->{element} || 'div';
+    my %attr = (
+        id      => $id,
+        class   => $class,
+    );
+    _aggregate_hash_attrs( $args, 'attr', \%attr );
+
+    my $attr_html = join( ' ', map {
+        my ( $n, $v ) = ( $_, $attr{$_} );
+        $v =~ s/"/\\"/g;
+        qq{$n="$v"};
+    } keys %attr );
+
+    # config
+    my %config = (
+        data        => \@array,
+        type        => 'morris.line',
+        autoResize  => 'true',
+        yLength     => scalar @ys,
+    );
+    _aggregate_hash_attrs( $args, 'config', \%config );
+    my $config_json = MT::Util::to_json(\%config);
+
+    # range
+    my %range = (
+        dataType    => 'general',
+        length      => scalar @$items,
+    );
+    _aggregate_hash_attrs( $args, 'range', \%range );
+    my $range_json = MT::Util::to_json(\%range);
+
+    # Javascript
+    my $js = qq{
+        new MT.ChartAPI.Graph($config_json, $range_json).trigger('APPEND_TO', \$('#$id'));
+    };
+
+    # Instant function or jQuery onready
+    if ( $immediate ) {
+        $js = qq"(function(\$) { $js })($jquery);";
+    } else {
+        $js = qq"$jquery(function(\$) { $js });";
+    }
+
+    # HTML
+    my $html = qq{
+        <$el $attr_html></$el>
+        <script type="text/javascript">
+        $js
+        </script>
+    };
+
+    print STDERR $html;
+
+    $html;
+}
+
+sub hdlr_GASparkline {
+    my ( $ctx, $args ) = @_;
+
+    my %defaults = (
+        'config:type'           => $args->{type} || 'easel.motionLine',
+        'config:lineWidth'      => $args->{line} || 3,
+        'config:@chartColors'   => $args->{color} || '#F87085',
+        'config:width'          => $args->{width} || 120,
+        'config:height'         => $args->{height} || 40,
+        'attr:class'            => $args->{class} || 'ma-sparkline',
+        'element'               => $args->{element} || 'span',
+    );
+    $defaults{y} = $args->{name} || $args->{metric} || $ctx->{__stash}{ga_primary_metric};
+    $defaults{autoResize} = 'false' unless defined $args->{autoResize};
+
+    foreach my $k ( keys %defaults ) {
+        $args->{$k} = $defaults{$k}
+            unless defined $args->{$k};
+    }
+
+    hdlr_GAChart(@_);
 }
 
 {
@@ -273,22 +492,13 @@ sub hdlr_GAReportFooter {
 }
 
 {
-    sub _format {
-        my ( $value, $ctx, $args ) = @_;
-
-        if ( $args->{comma} ) {
-            my $text = reverse $value;
-            $text =~ s/(\d\d\d)(?=\d)(?!\d\.)/$1,/g;
-            return scalar reverse $text;
-        } elsif ( my $format = $args->{format} ) {
-            return sprintf( $format, $value );
-        }
-
-        $value;
-    }
-
     sub _ga_value {
         my ( $tagname, $hash, $ctx, $args ) = @_;
+
+        # Request params
+        my $request_params = $ctx->{__stash}{ga_request_params}
+            or return $ctx->error(
+                plugin->translate('[_1] is not used in mt:GAReport context.', $tagname ) );
 
         # Hash
         return $ctx->error(
@@ -296,9 +506,8 @@ sub hdlr_GAReportFooter {
                 if !defined($hash) || ref $hash ne 'HASH';
 
         # Name
-        my $name = $args->{name}
-            or return $ctx->error(
-                plugin->translate( '[_1] requires [_2] attribute.', $tagname, 'name' ) );
+        my $name = $args->{name} || $args->{metric} || $args->{dimension}
+            || $ctx->{__stash}{ga_primary_metric};
 
         # The value
         my $value = $hash->{$name};
@@ -334,8 +543,11 @@ sub hdlr_GAReportFooter {
     }
 }
 
-sub hdlr_GAParam {
+sub hdlr_GARequestParam {
+    my ( $ctx, $args ) = @_;
 
+    # Response record
+    _ga_value( 'mt:GRequestParam', $ctx->stash('ga_request_params'), $ctx, $args );
 }
 
 sub hdlr_GAValue {

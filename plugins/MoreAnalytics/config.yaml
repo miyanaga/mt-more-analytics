@@ -200,6 +200,7 @@ tags:
         GAIfReady?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfReady
         GAProfiles: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfiles
         GAReport: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReport
+        GARequest: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARequest
         GAReportHeader?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportHeader
         GAReportFooter?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportFooter
         GAGuessObject: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAGuessObject
@@ -209,11 +210,14 @@ tags:
         CompareEntries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_CompareEntries
     function:
         GAProfile: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfile
+        GARequestParam: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARequestParam
         GAValue: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAValue
         GATotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GATotal
         GASubtotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GASubtotal
         GARest: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARest
         GAReportBreak: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportBreak
+        GAChart: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAChart
+        GASparkline: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GASparkline
         GAEntryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAEntryStat
         GAPageStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAPageStat
         GACategoryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GACategoryStat

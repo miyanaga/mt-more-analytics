@@ -59,7 +59,6 @@ sub hdlr_default_metric_handler {
     my $formatter = MT->handler_to_coderef( $metric->{formatter} );
 
     # Query and format
-    _dumper($param);
     my $data = ga_simple_request($app, $param);
     my @results = map {
         {
