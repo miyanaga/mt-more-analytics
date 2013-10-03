@@ -3,6 +3,8 @@ package MT::MoreAnalytics::Tags;
 use strict;
 use warnings;
 
+use Carp;
+
 use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
@@ -199,6 +201,10 @@ sub hdlr_GAReport {
     return $ctx->error( plugin->translate('items in results is not an array.') )
         unless ref $items eq 'ARRAY';
 
+    # Totals
+    my $totals = $data->{totals} || {};
+    my $total_results = $data->{totalResults} || 0;
+
     # Dump mode
     return _dump_results( $ctx, $args, $items ) if $args->{_dump};
 
@@ -209,7 +215,34 @@ sub hdlr_GAReport {
         $_ => $val;
     } keys %$params;
 
+    # Sum up metrics
     local $ctx->{__stash}{ga_request} = \%camel_params;
+    local $ctx->{__stash}{ga_totals} = $totals;
+    local $ctx->{__stash}{ga_total_results} = $total_results;
+
+    # On-demand subtotals
+    my ( %subtotals, %rests );
+    my $subtotaled = 0;
+    local $ctx->{__stash}{ga_ondemand_subtotals} = sub {
+        unless ( $subtotaled ) {
+            my @metrics = split( /\s*,\s*/, $args->{metrics} );
+            foreach my $metric ( @metrics ) {
+                foreach my $item ( @$items ) {
+                    $subtotals{$metric} = 0 unless defined $subtotals{$metric};
+                    $rests{$metric} = 0 unless defined $rests{$metric};
+
+                    $subtotals{$metric} += $item->{$metric}
+                        if defined $item->{$metric};
+                }
+
+                $rests{$metric} = $totals->{$metric} - $subtotals{$metric};
+            }
+
+            $subtotaled = 1;
+        }
+
+        ( \%subtotals, \%rests );
+    };
 
     _report_loop( $ctx, $args, $data, $items );
 }
@@ -239,23 +272,102 @@ sub hdlr_GAReportFooter {
     _hdlr_GAReportPosition( 'mt:GAReportFooter', '__last__', @_ );
 }
 
+{
+    sub _format {
+        my ( $value, $ctx, $args ) = @_;
+
+        if ( $args->{comma} ) {
+            my $text = reverse $value;
+            $text =~ s/(\d\d\d)(?=\d)(?!\d\.)/$1,/g;
+            return scalar reverse $text;
+        } elsif ( my $format = $args->{format} ) {
+            return sprintf( $format, $value );
+        }
+
+        $value;
+    }
+
+    sub _ga_value {
+        my ( $tagname, $hash, $ctx, $args ) = @_;
+
+        # Hash
+        return $ctx->error(
+            plugin->translate('[_1] is not used in mt:GAReport context.', $tagname ) )
+                if !defined($hash) || ref $hash ne 'HASH';
+
+        # Name
+        my $name = $args->{name}
+            or return $ctx->error(
+                plugin->translate( '[_1] requires [_2] attribute.', $tagname, 'name' ) );
+
+        # The value
+        my $value = $hash->{$name};
+        return '' unless defined $value;
+
+        # Percentage
+        if ( my $percentage = $args->{percentage} ) {
+            my $total;
+            if ( $percentage eq 'total' ) {
+                my $totals = $ctx->stash('ga_totals') || {};
+                $total = $totals->{$name};
+                return '' unless $total;
+            } else {
+                $total = $percentage;
+            }
+
+            $value = $value / $total * 100.0;
+
+            $args->{format} = '%0.2f%%' unless defined $args->{format};
+        }
+
+        # Format or commafy
+        my $format = $args->{format};
+        if ( $args->{comma} && !defined($format) ) {
+            my $text = reverse $value;
+            $text =~ s/(\d\d\d)(?=\d)(?!\d\.)/$1,/g;
+            $value = scalar reverse $text;
+        } elsif ( defined($format) ) {
+            $value = sprintf( $format, $value );
+        }
+
+        $value;
+    }
+}
+
+sub hdlr_GAParam {
+
+}
+
 sub hdlr_GAValue {
     my ( $ctx, $args ) = @_;
 
     # Response record
-    my $record = $ctx->stash('ga_record')
-        or return $ctx->error(
-            plugin->translate('[_1] is not used in mt:GAReport context.', 'mt:GAValue' ) );
+    _ga_value( 'mt:GAValue', $ctx->stash('ga_record'), $ctx, $args );
+}
 
-    # Request param
-    my $params = $ctx->stash('ga_request');
+sub hdlr_GATotal {
+    my ( $ctx, $args ) = @_;
 
-    # Name
-    my $name = $args->{name}
-        or return $ctx->error(
-            plugin->translate( '[_1] requires [_2] attribute.', 'mt:GAReport', 'name' ) );
+    # Response record
+    _ga_value( 'mt:GATotal', $ctx->stash('ga_totals'), $ctx, $args );
+}
 
-    $record->{$name} || $params->{$name};
+sub hdlr_GASubtotal {
+    my ( $ctx, $args ) = @_;
+
+    # Subtotal and rest
+    my ( $subtotals, $rests ) = $ctx->{__stash}{ga_ondemand_subtotals}->();
+
+    _ga_value( 'mt:GARest', $subtotals, $ctx, $args );
+}
+
+sub hdlr_GARest {
+    my ( $ctx, $args ) = @_;
+
+    # Subtotal and rest
+    my ( $subtotals, $rests ) = $ctx->{__stash}{ga_ondemand_subtotals}->();
+
+    _ga_value( 'mt:GARest', $rests, $ctx, $args );
 }
 
 sub hdlr_GAGuessObject {

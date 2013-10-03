@@ -49,11 +49,61 @@ use vars qw( %Lexicon );
     'Last 30 Days' => '直近30日間',
     'Last 90 Days' => '直近90日間',
 
-    # thtmes.yaml
+    # themes.yaml
     'Simple Access Report'
         => 'アクセス解析シンプルレポート',
     'A simple access stats report for any site.'
         => 'あらゆるサイトに対して適用できるシンプルなアクセス解析レポートです。',
+    'Abount This Template' => 'このテンプレートについて',
+    'This template is not used in this theme, created as a placeholder to customize.'
+        => 'このテンプレートはテーマで使用しませんが、カスタマイズのためのプレースホルダーとして用意されています。',
+
+    'Config Template Module' => '設定用テンプレートモジュール',
+    'Global Header' => '共通ヘッダー',
+    'Global Footer' => '共通フッター',
+    'Monthly Archives' => '月別アーカイブ',
+    'Recent Entries' => '最近の記事',
+    'Entry Digest' => '記事の概要',
+    'Entry Header' => '記事ヘッダー',
+
+    'Entry Body' => '記事本文',
+    'Summary Stats' => '概況',
+    'User Stats' => 'ユーザー統計',
+    'User Agents' => '利用環境',
+    'Traffic Stats' => '流入経路',
+    'Search Keywords' => '検索キーワード',
+    'Referers' => '参照元',
+    'User Satisfaction' => 'ユーザー満足度',
+    'Popular Contents' => '人気コンテンツ',
+    'Goal Conversions' => '目標コンバージョン',
+    'EC Conversions' => 'ECコンバージョン',
+
+    'Reporting Widgets In Each Entry' => '各レポートのウィジェット',
+    'Reporting Widgets In Entry Listing' => 'レポート一覧のウィジェット',
+
+    'Processing Start Date' => '集計開始日',
+    'Processing End Date' => '集計完了日',
+
+    'Feed - Recent Reports' => '最近のレポートフィード',
+    'Report Listing' => 'レポート一覧',
+
+    'Read More' => '詳細を表示',
+    'Weekly Report' => '週次レポート',
+    'Monthly Report' => '月次レポート',
+    'Sidebar' => 'サイドバー',
+
+    'Reported on [_1]' => '報告日: [_1]',
+    'From [_1] to [_2] [_3] day(s)' => '集計期間: [_1] 〜 [_2] [_3]日間',
+    'Reported by [_1]' => '報告者: [_1]',
+
+    'Visits' => '訪問数',
+    'Percentage' => '割合',
+    'Rest' => 'その他',
+    'Total' => '合計',
+
+    'OS' => 'OS',
+    'Ver.' => 'Ver',
+    'Browser' => 'ブラウザー',
 
     # tmpl/playground.tmpl
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
@@ -179,6 +229,10 @@ use vars qw( %Lexicon );
     '[_1] can not detect path info.' => '[_1] でパス情報が取得できません。',
     '[_1] is not found.' => '[_1] が見つかりません。',
     'Aggregation period [_1] not found.' => '集計期間 [_1] が見つかりません。',
+
+    # lib/MT/MoreAnalytics/Tags/Util.pm
+    'The value "[_3]" in [_2] attribute of [_1] tag must be valid date format.'
+        => '[_1]タグの[_2]属性の値「[_3]」は正しい日付の形式である必要があります。',
 
     # tmpl/playground/profiles.tmpl
     'Default' => 'デフォルト',

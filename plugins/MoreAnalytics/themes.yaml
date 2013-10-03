@@ -5,20 +5,58 @@ more_analytics_simple_report:
     author_name: ideaman's Inc.
     author_link: http://www.ideamans.com/
     version: 0.9
-    class: website
-    static_path: static
-    l10n_class: MT::MoreAnalytics
+    class: blog
+    # static_path: themes/simple-report/static
+    l10n_class: MT::MoreAnalytics::L10N
     thumbnail_file: thumb.png
     thumbnail_file_medium: thumb-medium.png
     thumbnail_file_small: thumb-small.png
     elements:
+        default_categories:
+            component: core
+            importer: default_categories
+            data:
+                monthly:
+                    label: Monthly Report
+                    children:
+                        dummy:
+                            label: Dummy
+                weekly:
+                    label: Weekly Report
+
+        custom_fields:
+            component: commercial
+            importer: custom_fields
+            data:
+                ma_01_start_date:
+                    obj_type: entry
+                    type: datetime
+                    options: date
+                    name: Processing Start Date
+                    required: 1
+                    tag: MASimpleReportStartDate
+                    basename: ma_simpe_report_start_date
+                ma_02_end_date:
+                    obj_type: entry
+                    type: datetime
+                    options: date
+                    name: Processing End Date
+                    required: 1
+                    tag: MASimpleReportEndDate
+                    basename: ma_simpe_report_end_date
+
+        blog_static:
+            component: core
+            importer: blog_static_files
+            data:
+                - bootstrap
         template_set:
             component: core
             importer: template_set
             name: Template Set
             data:
                 label: Simple Access Report
-                base_path: templates/website
+                base_path: templates/simple_report
                 require: 1
                 templates:
                     index:
@@ -26,29 +64,17 @@ more_analytics_simple_report:
                             label: Main Index
                             outfile: index.html
                             rebuild_me: 1
-                        blog_index:
-                            label: Blog Index
-                            outfile: blogs/index.html
-                            rebuild_me: 1
-                        archive_index:
-                            label: Archive Index
-                            outfile: archives.html
-                            rebuild_me: 1
                         styles:
                             label: Stylesheet
                             outfile: styles.css
                             rebuild_me: 1
                         javascript:
                             label: JavaScript
-                            outfile: mt.js
+                            outfile: script.js
                             rebuild_me: 1
                         feed_recent:
-                            label: Feed - Recent Entries
+                            label: Feed - Recent Reports
                             outfile: atom.xml
-                            rebuild_me: 1
-                        rsd:
-                            label: RSD
-                            outfile: rsd.xml
                             rebuild_me: 1
                     archive:
                         entry_listing:
@@ -56,57 +82,29 @@ more_analytics_simple_report:
                             mappings:
                                 monthly:
                                     archive_type: Monthly
-                                category:
-                                    archive_type: Category
                     individual:
                         entry:
                             label: Entry
                             mappings:
                                 entry_archive:
                                     archive_type: Individual
-                    page:
-                        page:
-                            label: Page
-                            mappings:
-                                page_archive:
-                                    archive_type: Page
                     module:
-                        header:
-                            label: Header
-                        footer:
-                            label: Footer
-                        navigation:
-                            label: Navigation
-                        categories:
-                            label: Categories
-                        comment_detail:
-                            label: Comment Detail
-                        comment_form:
-                            label: Comment Form
-                        comments:
-                            label: Comments
-                        entry_detail:
-                            label: Entry Detail
-                        entry_metadata:
-                            label: Entry Metadata
-                        entry_summary:
-                            label: Entry Summary
-                        page_detail:
-                            label: Page Detail
+                        config:
+                            label: Config Template Module
+                        global_header:
+                            label: Global Header
+                        global_footer:
+                            label: Global Footer
                         sidebar:
                             label: Sidebar
-                        tags:
-                            label: Tags
-                        trackbacks:
-                            label: TrackBacks
-                        signin:
-                            label: Sign In
-                        search:
-                            label: Search
-                        footer_links:
-                            label: Footer Links
-                        powered_by_footer:
-                            label: Powered By (Footer)
+                        entry_header:
+                            label: Entry Header
+                        entry_digest:
+                            label: Entry Digest
+                        recent_entries:
+                            label: Recent Entries
+                        monthly_archives:
+                            label: Monthly Archives
                     system:
                         comment_listing:
                             label: Comment Listing
@@ -122,30 +120,47 @@ more_analytics_simple_report:
                         search_results:
                             label: Search Results
                     widget:
-                        blogs:
-                            label: Blogs
-                        recent_entries_expanded:
-                            label: Recent Entries Expanded
-                        syndication:
-                            label: Syndication
-                        tag_cloud:
-                            label: Tag Cloud
-                        pages_list:
-                            label: Page Listing
-                        openid:
-                            label: OpenID Accepted
-                    widgetset:
-                        main_sidebar:
-                            order: 1000
-                            label: Main Sidebar
-                            widgets:
-                                - Blogs
-                                - Tag Cloud
-                        blog_activity:
-                            order: 1000
-                            label: Blog Activity
-                            widgets:
-                                - Recent Entries Expanded
-                                - OpenID Accepted
-                                - Syndication
+                        entry_body:
+                            label: Entry Body
+                        summary_stats:
+                            label: Summary Stats
+                        user_stats:
+                            label: User Stats
+                        user_agents:
+                            label: User Agents
+                        traffic_stats:
+                            label: Traffic Stats
+                        search_keywords:
+                            label: Search Keywords
+                        referers:
+                            label: Referers
+                        user_satisfaction:
+                            label: User Satisfaction
+                        popular_contents:
+                            label: Popular Contents
+                        goal_conversion:
+                            label: Goal Conversions
+                        ec_conversion:
+                            label: EC Conversions
 
+                    widgetset:
+                        entry_archive_report:
+                            order: 100
+                            label: Reporting Widgets In Each Entry
+                            widgets:
+                                - Entry Body
+                                - User Stats
+                                - User Agents
+                                - Traffic Stats
+                                - Keywords
+                                - Referers
+                                - User Satisfaction
+                                - Popular Contents
+                                - Goal Conversions
+                                - EC Conversions
+                        entry_listing_report:
+                            order: 200
+                            label: Reporting Widgets In Entry Listing
+                            widgets:
+                                - Entry Body
+                                - Summary Stats

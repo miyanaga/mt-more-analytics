@@ -10,6 +10,8 @@ system_config_template: config/system.tmpl
 blog_config_template:
     code: $MoreAnalytics::MT::MoreAnalytics::CMS::Config::blog_config
 
+themes: themes.yaml
+
 more_analytics: more_analytics.yaml
 
 settings:
@@ -204,14 +206,19 @@ tags:
         GAIfObjectType?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfObjectType
         Entries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
         Pages: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
+        CompareEntries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_CompareEntries
     function:
         GAProfile: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfile
         GAValue: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAValue
+        GATotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GATotal
+        GASubtotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GASubtotal
+        GARest: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARest
         GAReportBreak: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportBreak
         GAEntryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAEntryStat
         GAPageStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAPageStat
         GACategoryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GACategoryStat
         GAFolderStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAFolderStat
+        GADays: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GADays
     filters:
         Entries:
             ga:sort_by:

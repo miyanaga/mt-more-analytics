@@ -1,0 +1,80 @@
+<div class="widget widget-user-agents">
+  <h2><__trans phrase="User Agents"></h2>
+  <div class="widget-body">
+  
+    <mt:GAReport dimensions="operatingSystem,browser" metrics="visits" max_results="$table_lines" sort="-visits">
+      <mt:GAReportHeader>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th><__trans phrase="OS"></th>
+              <th><__trans phrase="Browser"></th>
+              <th><__trans phrase="Visits"></th>
+              <th><__trans phrase="Percentage"></th>
+            </tr>
+          </thead>
+          <tbody>
+      </mt:GAReportHeader>
+
+            <tr>
+              <td><$mt:GAValue name="operatingSystem" escape="html"$></td>
+              <td><$mt:GAValue name="browser" escape="html"$></td>
+              <td class="num"><$mt:GAValue name="visits" comma="1" escape="html"$></td>
+              <td class="num"><$mt:GAValue name="visits" percentage="total" escape="html"$></td>
+            </tr>          
+
+      <mt:GAReportFooter>
+            <tr class="rest">
+              <td colspan="2"><__trans phrase="Rest"></td>
+              <td class="num"><$mt:GARest name="visits" comma="1" escape="html"$></td>
+              <td class="num"><$mt:GARest name="visits" percentage="total" escape="html"$></td>
+            </tr>
+
+          </tbody>
+
+          <tfoot>
+
+            <tr class="total">
+              <td colspan="2"><__trans phrase="Total"></td>
+              <td class="num"><$mt:GATotal name="visits" comma="1" escape="html"$></td>
+              <td class="num"><$mt:GATotal name="visits" percentage="total" escape="html"$></td>
+            </tr>
+
+          </tfoot>
+        </table>
+
+        <$mt:GATotal name="visits" setvar="total"$>
+      </mt:GAReportFooter>
+    </mt:GAReport>
+
+    <h3><__trans phrase="Internet Explorer"></h3>
+
+    <mt:GAReport dimensions="browser,browserVersion" metrics="visits" max_results="$table_lines" sort="-visits" filters="browser=@Explorer">
+
+      <mt:GAReportHeader>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th><__trans phrase="Browser"></th>
+              <th><__trans phrase="Ver."></th>
+              <th><__trans phrase="Visits"></th>
+            </tr>
+          </thead>
+          <tbody>
+      </mt:GAReportHeader>
+
+            <tr>
+              <td><$mt:GAValue name="browser" escape="html"$></td>
+              <td class="num"><$mt:GAValue name="browserVersion" escape="html"$></td>
+              <td class="num"><$mt:GAValue name="visits" comma="1" escape="html"$></td>
+            </tr>          
+
+      <mt:GAReportFooter>
+          </tbody>
+        </table>
+      </mt:GAReportFooter>
+
+    </mt:GAReport>
+
+  </div>
+</div>
