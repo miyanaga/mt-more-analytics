@@ -14,6 +14,74 @@ footer {
   margin-bottom: 4px;
 }
 
-td.num {
-  text-aligh: right !important;
+.table-report td.num {
+  text-align: right;
 }
+
+.table-report th,
+.table-report td {
+  word-break: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+}
+
+.table-report th.wrap,
+.table-report td.wrap {
+  word-break: break-all;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.metric-panel {
+  display: inline-block;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
+  heigt: 160px;
+  min-height: 160px;
+  max-height: 160px;
+  padding: 4px;
+}
+
+.metric-panel > div {
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  display: block;
+}
+
+.metric-panel .label {
+  color: #333333;
+  font-size: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.metric-panel .value {
+  color: #666666;
+  font-size: 22px;
+  height: 60px;
+  line-height: 60px;
+}
+
+.metric-panel .value.length-1 { font-size: 52px; }
+.metric-panel .value.length-2 { font-size: 50px; }
+.metric-panel .value.length-3 { font-size: 48px; }
+.metric-panel .value.length-4 { font-size: 46px; }
+.metric-panel .value.length-5 { font-size: 44px; }
+.metric-panel .value.length-6 { font-size: 42px; }
+.metric-panel .value.length-7 { font-size: 40px; }
+.metric-panel .value.length-8 { font-size: 38px; }
+.metric-panel .value.length-9 { font-size: 36px; }
+.metric-panel .value.length-10 { font-size: 34px; }
+.metric-panel .value.length-11 { font-size: 32px; }
+.metric-panel .value.length-12 { font-size: 30px; }
+.metric-panel .value.length-13 { font-size: 28px; }
+.metric-panel .value.length-14 { font-size: 26px; }
+.metric-panel .value.length-15 { font-size: 24px; }
+
+.metric-panel .sparkline {
+  height: 60px;
+  padding-top: 4px;
+}
+

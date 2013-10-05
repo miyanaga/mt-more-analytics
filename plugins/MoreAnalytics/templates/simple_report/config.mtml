@@ -1,6 +1,21 @@
 <mt:SetVarBlock name="devNull">
 
 <mt:Ignore><__trans phrase="Table Lines"></mt:Ignore>
-<mt:SetVar name="table_lines" value="10">
+
+<$mt:SetVar name="agent_lines" value="10"$>
+<$mt:SetVar name="keyword_lines" value="10"$>
+<$mt:SetVar name="content_lines" value="10"$>
+<$mt:SetVar name="referrer_lines" value="10"$>
+<$mt:SetVar name="traffic_bars" value="5"$>
+<$mt:SetVar name="mobile_bars" value="4"$>
+<$mt:SetVar name="mobile_lines" value="4"$>
+
+<$mt:SetVar name="referrer_filters" value="medium==referral"$>
+<$mt:SetVar name="keyword_filters" value="medium==organic;keyword!=(not set);keyword!=(not provided)"$>
+<$mt:SetVar name="traffic_filters" value=""$>
+<$mt:SetVar name="mobile_filters" value=""$>
+
+<$mt:SetVar name="digest_widget_layout" value="single"$>
+<$mt:SetVar name="report_widget_layout" value="double"$>
 
 </mt:SetVarBlock><mt:SetVar name="devNull">

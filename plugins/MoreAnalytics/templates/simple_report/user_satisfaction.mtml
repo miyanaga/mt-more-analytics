@@ -1,0 +1,14 @@
+<mt:SetVar name="widget_id" value="user-satisfaction">
+<mt:SetVar name="widget_title" value="<__trans phrase='User Satisfaction'>">
+<mt:SetVarTemplate name="widget_template">
+
+  <mt:GARequest sparkline="1" metrics="pageviewsPerVisit,avgTimeOnSite,avgTimeOnPage,visitBounceRate">
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="visitBounceRate" type="percentage" label="<__trans phrase='Bounce Rate'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="pageviewsPerVisit" type="float" label="<__trans phrase='Avg. PV'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="avgTimeOnSite" type="second" label="<__trans phrase='Avg. Site Stay'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="avgTimeOnPage" type="second" label="<__trans phrase='Avg. Page Stay'>"$>
+  </mt:GARequest>
+
+</mt:SetVarTemplate>
+
+<$mt:Include module="<__trans phrase='Compared Report Widget'>"$>

@@ -105,6 +105,10 @@ more_analytics_simple_report:
                             label: Recent Entries
                         monthly_archives:
                             label: Monthly Archives
+                        compared_widget:
+                            label: Compared Report Widget
+                        metric_panel:
+                            label: Metric Panel
                     system:
                         comment_listing:
                             label: Comment Listing
@@ -124,24 +128,20 @@ more_analytics_simple_report:
                             label: Entry Body
                         summary_stats:
                             label: Summary Stats
-                        user_stats:
-                            label: User Stats
-                        user_agents:
-                            label: User Agents
                         traffic_stats:
                             label: Traffic Stats
                         search_keywords:
                             label: Search Keywords
-                        referers:
-                            label: Referers
+                        referrers:
+                            label: Referrers
+                        user_agents:
+                            label: User Agents
+                        mobile_stats:
+                            label: Mobile Stats
                         user_satisfaction:
                             label: User Satisfaction
                         popular_contents:
                             label: Popular Contents
-                        goal_conversion:
-                            label: Goal Conversions
-                        ec_conversion:
-                            label: EC Conversions
 
                     widgetset:
                         entry_archive_report:
@@ -149,15 +149,14 @@ more_analytics_simple_report:
                             label: Reporting Widgets In Each Entry
                             widgets:
                                 - Entry Body
-                                - User Stats
-                                - User Agents
+                                - Summary Stats
                                 - Traffic Stats
-                                - Keywords
-                                - Referers
+                                - Search Keywords
+                                - Referrers
+                                - User Agents
+                                - Mobile Stats
                                 - User Satisfaction
                                 - Popular Contents
-                                - Goal Conversions
-                                - EC Conversions
                         entry_listing_report:
                             order: 200
                             label: Reporting Widgets In Entry Listing

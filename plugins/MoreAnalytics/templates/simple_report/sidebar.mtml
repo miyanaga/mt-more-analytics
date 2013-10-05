@@ -1,15 +1,26 @@
-<div class="well">
-  <h4><__trans phrase="Categories"></h4>
+<mt:If tag="EntryID"><$mt:EntryID setvar="current_id"$></mt:If>
+<mt:Entries>
 
-<mt:SubCategories>
-  <mt:SubCatIsFirst><ul class="list-unstyled"></mt:SubCatIsFirst>
-    <li><a href="<$mt:CategoryArchiveLink$>"><$mt:CategoryLabel escape="html"$></a></li>
-    <$mt:SubCatsRecurse$>
-  <mt:SubCatIsLast></ul></mt:SubCatIsLast>
-</mt:SubCategories>
-</div><!-- /well -->
+  <mt:EntriesHeader>
+<div>
+  <h4><__trans phrase="Report Archive"></h4>
+
+  <div class="list-group">
+  </mt:EntriesHeader>
+  
+    <a href="<$mt:EntryPermalink$>" class="list-group-item<mt:If tag='EntryID' eq='$current_id'> active</mt:If>">
+      <h4 class="list-group-item-heading"><span class="glyphicon glyphicon-file"></span> <$mt:EntryTitle escape="html"$></h4>
+      <p class="list-group-item-text"><__trans phrase='[_1] ~ [_2]' params='<$mt:MASimpleReportStartDate$>%%<$mt:MASimpleReportEndDate format="%Y-%m-%d"$>'></p>
+    </a>
+
+  <mt:EntriesFooter>
+  </div>
+</div>
+  </mt:EntriesFooter>
+
+</mt:Entries>
 
 <div class="well">
-  <h4>Side Widget Well</h4>
-  <p>Bootstrap's default well's work great for side widgets! What is a widget anyways...?</p>
+  <h4><__trans phrase="About This Theme"></h4>
+  <p><__trans phrase="Access reporting theme provided as a part of MoreAnalytics plugin. That enpowers your site with big data in Google Analytics!"></p>
 </div><!-- /well -->

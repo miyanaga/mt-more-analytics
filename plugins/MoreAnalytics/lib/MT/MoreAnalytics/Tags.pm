@@ -122,6 +122,14 @@ use MT::MoreAnalytics::Request;
         my %args = %$args;
         $args = \%args;
 
+        # Merge default args
+        my $default_args = $ctx->{__stash}{ga_report_args} || {};
+        _dumper($default_args);
+        foreach my $d ( keys %$default_args ) {
+            $args->{$d} = $default_args->{$d};
+        }
+
+        # Provider
         defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
             or return;
 
@@ -148,8 +156,9 @@ use MT::MoreAnalytics::Request;
         # For sparkline dimensions
         if ( $args->{sparkline} ) {
             my $diff = date_diff( $blog, $args->{start_date}, $args->{end_date} );
+            _dumper($diff);
             $args->{dimensions} = $diff < 2 ? 'dateHour'
-                : $diff < 32 ? 'date'
+                : $diff < 33 ? 'date'
                 : $diff < 180 ? 'yearWeek'
                 : $diff < 900 ? 'yearMonth'
                 : 'year';
@@ -164,6 +173,7 @@ use MT::MoreAnalytics::Request;
         }
 
         # Send request
+        _dumper($args);
         my $request = MT::MoreAnalytics::Request->new($args);
         my $params = $request->normalize;
         defined ( my $data = $ma->_request( $app, $params ) )
@@ -173,6 +183,7 @@ use MT::MoreAnalytics::Request;
         my $items = $data->{items};
         return $ctx->error( plugin->translate('items in results is not an array.') )
             unless ref $items eq 'ARRAY';
+        _dumper($items);
 
         # Totals
         my $totals = $data->{totals} || {};
@@ -234,6 +245,34 @@ sub hdlr_GAIfReady {
         or return 0;
 
     1;
+}
+
+sub hdlr_GAReportArgs {
+    my ( $ctx, $args, $cond ) = @_;
+    my $builder = $ctx->stash('builder');
+    my $tokens = $ctx->stash('tokens');
+
+    local $ctx->{__stash}{ga_report_args} = $args;
+    defined ( my $out = $builder->build($ctx, $tokens) )
+        or return $ctx->error($builder->errstr);
+
+    $out;
+}
+
+sub hdlr_GASingleMetric {
+    my ( $ctx, $args, $cond ) = @_;
+
+    my $metric = $args->{metrics} = delete $args->{name}
+        || delete $args->{metric} || 'pageviews';
+    delete $args->{dimensions};
+
+    _handle_report_tag( $ctx, $args, undef, output => sub {
+        my ( $ctx, $args, $data, $items ) = @_;
+
+        # First single value or blank
+        my $value = $items->[0] or return '';
+        $value->{$metric};
+    });
 }
 
 sub hdlr_GAReport {
@@ -384,6 +423,7 @@ sub hdlr_GAChart {
     }
 
     # Build HTML and JavaScript
+    my $append_js_to = $args->{append_js_to};
 
     # Element ID
     require Digest::MD5;
@@ -439,12 +479,22 @@ sub hdlr_GAChart {
     # HTML
     my $html = qq{
         <$el $attr_html></$el>
-        <script type="text/javascript">
-        $js
-        </script>
     };
 
-    print STDERR $html;
+    if ( $append_js_to ) {
+
+        # Add to var
+        $ctx->{__stash}{vars}{$append_js_to} ||= '';
+        $ctx->{__stash}{vars}{$append_js_to} .= $js;
+    } else {
+
+        # Render as HTML
+        $html .= qq{
+            <script type="text/javascript">
+            $js
+            </script>
+        };
+    }
 
     $html;
 }
@@ -460,6 +510,7 @@ sub hdlr_GASparkline {
         'config:height'         => $args->{height} || 40,
         'attr:class'            => $args->{class} || 'ma-sparkline',
         'element'               => $args->{element} || 'span',
+        'config:autoResize'     => $args->{resize},
     );
     $defaults{y} = $args->{name} || $args->{metric} || $ctx->{__stash}{ga_primary_metric};
     $defaults{autoResize} = 'false' unless defined $args->{autoResize};

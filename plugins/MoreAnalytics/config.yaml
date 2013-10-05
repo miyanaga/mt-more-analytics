@@ -199,6 +199,7 @@ tags:
     block:
         GAIfReady?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfReady
         GAProfiles: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfiles
+        GAReportArgs: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportArgs
         GAReport: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReport
         GARequest: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARequest
         GAReportHeader?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAReportHeader
@@ -207,10 +208,11 @@ tags:
         GAIfObjectType?: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAIfObjectType
         Entries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
         Pages: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_Entries
-        CompareEntries: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_CompareEntries
+        GACompareEntries: $MoreAnalytics::MT::MoreAnalytics::Tags::Util::hdlr_GACompareEntries
     function:
         GAProfile: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAProfile
         GARequestParam: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GARequestParam
+        GASingleMetric: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GASingleMetric
         GAValue: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAValue
         GATotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GATotal
         GASubtotal: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GASubtotal
@@ -222,7 +224,7 @@ tags:
         GAPageStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAPageStat
         GACategoryStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GACategoryStat
         GAFolderStat: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GAFolderStat
-        GADays: $MoreAnalytics::MT::MoreAnalytics::Tags::hdlr_GADays
+        GADateDiff: $MoreAnalytics::MT::MoreAnalytics::Tags::Util::hdlr_GADateDiff
     filters:
         Entries:
             ga:sort_by:

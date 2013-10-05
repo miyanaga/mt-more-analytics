@@ -1,17 +1,13 @@
-<mt:SetVar name="widget_id" value="traffic-stats">
-<mt:SetVar name="widget_title" value="<__trans phrase='Traffic Stats'>">
+<mt:SetVar name="widget_id" value="referrers">
+<mt:SetVar name="widget_title" value="<__trans phrase='Referrers'>">
 <mt:SetVarTemplate name="widget_template">
 
-  <mt:GARequest dimensions="medium" metrics="visits" max_results="$traffic_bars" sort="-visits" filters="$traffic_filters">
-    <$mt:GAChart config="type: morris.donut" append_js_to="page_javascript"$>
-  </mt:GARequest>
-
-  <mt:GAReport dimensions="medium" metrics="visits" max_results="$traffic_bars" sort="-visits" filters="$traffic_filters">
+  <mt:GAReport dimensions="source,fullReferrer" metrics="visits" max_results="$referrer_lines" sort="-visits" filters="$referrer_filters">
     <mt:GAReportHeader>
       <table class="table table-striped table-report">
         <thead>
           <tr>
-            <th></th>
+            <th><__trans phrase="Referrer"></th>
             <th class="num"><__trans phrase="Visits"></th>
             <th class="num"><__trans phrase="Percentage"></th>
           </tr>
@@ -20,7 +16,7 @@
     </mt:GAReportHeader>
 
           <tr>
-            <td class="wrap"><$mt:GAValue name="medium" escape="html"$></td>
+            <td class="wrap"><a href="http://<$mt:GAValue name='fullReferrer' escape='html'$>" target="_blank"><$mt:GAValue name="source" escape="html"$></a></td>
             <td class="num"><$mt:GAValue name="visits" comma="1" escape="html"$></td>
             <td class="num"><$mt:GAValue name="visits" percentage="total" escape="html"$></td>
           </tr>          

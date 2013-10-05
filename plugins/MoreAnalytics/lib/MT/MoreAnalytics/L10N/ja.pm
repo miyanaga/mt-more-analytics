@@ -57,6 +57,9 @@ use vars qw( %Lexicon );
     'Abount This Template' => 'このテンプレートについて',
     'This template is not used in this theme, created as a placeholder to customize.'
         => 'このテンプレートはテーマで使用しませんが、カスタマイズのためのプレースホルダーとして用意されています。',
+    'About This Theme' => 'このテーマについて',
+    'Access reporting theme provided as a part of MoreAnalytics plugin. That enpowers your site with big data in Google Analytics!'
+        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。MoreAnalyticsプラグインは、Google Analyticsに蓄積されたビッグデータを元にあなたのサイトを進化させます！',
 
     'Config Template Module' => '設定用テンプレートモジュール',
     'Global Header' => '共通ヘッダー',
@@ -65,14 +68,16 @@ use vars qw( %Lexicon );
     'Recent Entries' => '最近の記事',
     'Entry Digest' => '記事の概要',
     'Entry Header' => '記事ヘッダー',
+    'Compared Report Widget' => '比較レポートウィジェット',
+    'Metric Panel' => '指標パネル',
 
     'Entry Body' => '記事本文',
     'Summary Stats' => '概況',
-    'User Stats' => 'ユーザー統計',
+    'Mobile Stats' => 'モバイル統計',
     'User Agents' => '利用環境',
     'Traffic Stats' => '流入経路',
     'Search Keywords' => '検索キーワード',
-    'Referers' => '参照元',
+    'Referrers' => '参照元',
     'User Satisfaction' => 'ユーザー満足度',
     'Popular Contents' => '人気コンテンツ',
     'Goal Conversions' => '目標コンバージョン',
@@ -86,6 +91,7 @@ use vars qw( %Lexicon );
 
     'Feed - Recent Reports' => '最近のレポートフィード',
     'Report Listing' => 'レポート一覧',
+    'Report Archive' => 'レポートアーカイブ',
 
     'Read More' => '詳細を表示',
     'Weekly Report' => '週次レポート',
@@ -93,8 +99,10 @@ use vars qw( %Lexicon );
     'Sidebar' => 'サイドバー',
 
     'Reported on [_1]' => '報告日: [_1]',
-    'From [_1] to [_2] [_3] day(s)' => '集計期間: [_1] 〜 [_2] [_3]日間',
     'Reported by [_1]' => '報告者: [_1]',
+    '[_1] ~ [_2]' => '[_1] 〜 [_2]',
+    'This Time' => '今回',
+    'Previous' => '前回',
 
     'Visits' => '訪問数',
     'Percentage' => '割合',
@@ -104,6 +112,20 @@ use vars qw( %Lexicon );
     'OS' => 'OS',
     'Ver.' => 'Ver',
     'Browser' => 'ブラウザー',
+
+    'Keyword' => 'キーワード',
+
+    'Referrer' => '参照元',
+    'Referrers' => '参照元',
+
+    'Page' => 'ページ',
+    'PV' => 'PV',
+    'Visitors' => '訪問者数',
+
+    'New Visits' => '新規訪問',
+    'Avg. PV' => '平均PV',
+    'Avg. Page Stay' => '平均ページ滞在',
+    'Avg. Site Stay' => '平均サイト滞在',
 
     # tmpl/playground.tmpl
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
