@@ -130,6 +130,18 @@ callbacks:
     MT::MoreAnalytics::Period::post_save: $MoreAnalytics::MT::MoreAnalytics::Period::on_post_save
 
 applications:
+    data_api:
+        endpoints:
+            -
+                id: more_analytics
+                route: /sites/:site_id/more-analytics
+                handler: $MoreAnalytics::MT::MoreAnalytics::DataAPI::endpoint
+                version: 1
+                requires_login: 0
+        resources:
+            entry:
+                fields: $MoreAnalytics::MT::MoreAnalytics::DataAPI::fields
+
     cms:
         methods:
             ma_playground: $MoreAnalytics::MT::MoreAnalytics::CMS::Playground::index

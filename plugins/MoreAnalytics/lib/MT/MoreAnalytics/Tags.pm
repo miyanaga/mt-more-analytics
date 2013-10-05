@@ -111,130 +111,128 @@ use MT::MoreAnalytics::Request;
 
         $result;
     }
+}
 
-    sub _handle_report_tag {
-        my ( $ctx, $args, $cond, %param ) = @_;
-        my $app = MT->instance;
-        my $blog = $ctx->stash('blog');
+sub _handle_report_tag {
+    my ( $ctx, $args, $cond, %param ) = @_;
+    my $app = MT->instance;
+    my $blog = $ctx->stash('blog');
 
-        # FIXME $args will be broken...
-        my $orig_args = $args;
-        my %args = %$args;
-        $args = \%args;
+    # FIXME $args will be broken...
+    my $orig_args = $args;
+    my %args = %$args;
+    $args = \%args;
 
-        # Merge default args
-        my $default_args = $ctx->{__stash}{ga_report_args} || {};
-        _dumper($default_args);
-        foreach my $d ( keys %$default_args ) {
-            $args->{$d} = $default_args->{$d};
+    # Merge default args
+    my $default_args = $ctx->{__stash}{ga_report_args} || {};
+    _dumper($default_args);
+    foreach my $d ( keys %$default_args ) {
+        $args->{$d} = $default_args->{$d};
+    }
+
+    # Provider
+    defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
+        or return;
+
+    # Fill default period if no date range
+    $args->{period} ||= 'default'
+        if !$args->{start_date} && !$args->{end_date};
+
+    if ( my $ma_period = delete $args->{period} ) {
+
+        # Set date range if args has period
+        my $period = MT->model('ma_period')->load({basename => $ma_period})
+            or $ctx->error(plugin->translate('Period [_1] is not found.', $ma_period));
+        $args->{start_date} ||= $period->from_method->format_ga($blog);
+        $args->{end_date} ||= $period->to_method->format_ga($blog);
+    }
+
+    # Primary metric
+    my $primary_metric;
+    if ( my $metrics = $args->{metrics} ) {
+        my @metrics = split(/\s*,\s*/, $metrics);
+        $primary_metric = shift @metrics;
+    }
+
+    # For sparkline dimensions
+    if ( $args->{sparkline} ) {
+        my $diff = date_diff( $blog, $args->{start_date}, $args->{end_date} );
+        _dumper($diff);
+        $args->{dimensions} = $diff < 2 ? 'dateHour'
+            : $diff < 33 ? 'date'
+            : $diff < 180 ? 'yearWeek'
+            : $diff < 900 ? 'yearMonth'
+            : 'year';
+    }
+
+    # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
+    $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
+    unless ( $args->{ids} ) {
+        if ( my $profile = $ctx->stash('ga_profile') ) {
+            $args->{ids} = $profile->{id} if $profile->{id};
         }
+    }
 
-        # Provider
-        defined ( my $ma = _lookup_more_analytics( $ctx, $ctx, $args ) )
-            or return;
+    # Send request
+    my $request = MT::MoreAnalytics::Request->new($args);
+    my $params = $request->normalize;
+    defined ( my $data = $ma->_request( $app, $params ) )
+        or return $ctx->error($app->errstr);
 
-        # Fill default period if no date range
-        $args->{period} ||= 'default'
-            if !$args->{start_date} && !$args->{end_date};
+    # Check if items is array
+    my $items = $data->{items};
+    return $ctx->error( plugin->translate('items in results is not an array.') )
+        unless ref $items eq 'ARRAY';
 
-        if ( my $ma_period = delete $args->{period} ) {
+    # Totals
+    my $totals = $data->{totals} || {};
+    my $total_results = $data->{totalResults} || 0;
 
-            # Set date range if args has period
-            my $period = MT->model('ma_period')->load({basename => $ma_period})
-                or $ctx->error(plugin->translate('Period [_1] is not found.', $ma_period));
-            $args->{start_date} ||= $period->from_method->format_ga($blog);
-            $args->{end_date} ||= $period->to_method->format_ga($blog);
-        }
+    # Dump mode
+    return _dump_results( $ctx, $args, $items ) if $args->{_dump};
 
-        # Primary metric
-        my $primary_metric;
-        if ( my $metrics = $args->{metrics} ) {
-            my @metrics = split(/\s*,\s*/, $metrics);
-            $primary_metric = shift @metrics;
-        }
+    # Stash camel formatted request params
+    my %camel_params = map {
+        my $val = $params->{$_};
+        s/_([a-z])/{uc($1)}/ieg;
+        $_ => $val;
+    } keys %$params;
 
-        # For sparkline dimensions
-        if ( $args->{sparkline} ) {
-            my $diff = date_diff( $blog, $args->{start_date}, $args->{end_date} );
-            _dumper($diff);
-            $args->{dimensions} = $diff < 2 ? 'dateHour'
-                : $diff < 33 ? 'date'
-                : $diff < 180 ? 'yearWeek'
-                : $diff < 900 ? 'yearMonth'
-                : 'year';
-        }
+    # Sum up metrics
+    local $ctx->{__stash}{ga_request_params} = { %camel_params, %$params };
+    local $ctx->{__stash}{ga_totals} = $totals;
+    local $ctx->{__stash}{ga_total_results} = $total_results;
+    local $ctx->{__stash}{ga_primary_metric} = $primary_metric;
 
-        # Profile id from 1st: profile_id or ids args, 2nd: ga_profile stash, 3rd: blog default.
-        $args->{ids} = delete $args->{profile_id} if $args->{profile_id};
-        unless ( $args->{ids} ) {
-            if ( my $profile = $ctx->stash('ga_profile') ) {
-                $args->{ids} = $profile->{id} if $profile->{id};
-            }
-        }
+    # On-demand subtotals
+    my ( %subtotals, %rests );
+    my $subtotaled = 0;
+    local $ctx->{__stash}{ga_ondemand_subtotals} = sub {
+        unless ( $subtotaled ) {
+            my @metrics = split( /\s*,\s*/, $args->{metrics} );
+            foreach my $metric ( @metrics ) {
+                foreach my $item ( @$items ) {
+                    $subtotals{$metric} = 0 unless defined $subtotals{$metric};
+                    $rests{$metric} = 0 unless defined $rests{$metric};
 
-        # Send request
-        _dumper($args);
-        my $request = MT::MoreAnalytics::Request->new($args);
-        my $params = $request->normalize;
-        defined ( my $data = $ma->_request( $app, $params ) )
-            or return $ctx->error($app->errstr);
-
-        # Check if items is array
-        my $items = $data->{items};
-        return $ctx->error( plugin->translate('items in results is not an array.') )
-            unless ref $items eq 'ARRAY';
-        _dumper($items);
-
-        # Totals
-        my $totals = $data->{totals} || {};
-        my $total_results = $data->{totalResults} || 0;
-
-        # Dump mode
-        return _dump_results( $ctx, $args, $items ) if $args->{_dump};
-
-        # Stash camel formatted request params
-        my %camel_params = map {
-            my $val = $params->{$_};
-            s/_([a-z])/{uc($1)}/ieg;
-            $_ => $val;
-        } keys %$params;
-
-        # Sum up metrics
-        local $ctx->{__stash}{ga_request_params} = { %camel_params, %$params };
-        local $ctx->{__stash}{ga_totals} = $totals;
-        local $ctx->{__stash}{ga_total_results} = $total_results;
-        local $ctx->{__stash}{ga_primary_metric} = $primary_metric;
-
-        # On-demand subtotals
-        my ( %subtotals, %rests );
-        my $subtotaled = 0;
-        local $ctx->{__stash}{ga_ondemand_subtotals} = sub {
-            unless ( $subtotaled ) {
-                my @metrics = split( /\s*,\s*/, $args->{metrics} );
-                foreach my $metric ( @metrics ) {
-                    foreach my $item ( @$items ) {
-                        $subtotals{$metric} = 0 unless defined $subtotals{$metric};
-                        $rests{$metric} = 0 unless defined $rests{$metric};
-
-                        $subtotals{$metric} += $item->{$metric}
-                            if defined $item->{$metric};
-                    }
-
-                    $rests{$metric} = $totals->{$metric} - $subtotals{$metric};
+                    $subtotals{$metric} += $item->{$metric}
+                        if defined $item->{$metric};
                 }
 
-                $subtotaled = 1;
+                $rests{$metric} = $totals->{$metric} - $subtotals{$metric};
             }
 
-            ( \%subtotals, \%rests );
-        };
+            $subtotaled = 1;
+        }
 
-        local $ctx->{__stash}{ga_data} = $data;
-        local $ctx->{__stash}{ga_items} = $items;
+        ( \%subtotals, \%rests );
+    };
 
-        # FIXME $args broken here - ex) no_loop -> no-loop
-        $param{output}->( $ctx, $orig_args, $data, $items );
-    }
+    local $ctx->{__stash}{ga_data} = $data;
+    local $ctx->{__stash}{ga_items} = $items;
+
+    # FIXME $args broken here - ex) no_loop -> no-loop
+    $param{output}->( $ctx, $orig_args, $data, $items );
 }
 
 sub hdlr_GAIfReady {
