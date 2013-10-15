@@ -30,6 +30,102 @@ use vars qw( %Lexicon );
     'period' => '集計期間',
     'periods' => '集計期間',
 
+    # 'Date Calculation' => '日付計算',
+    # '`From X days before` means' => '「X日前から」という表記は',
+    # 'including today.' => '今日を含む。',
+    # 'excluding today, until yesterday.' => '今日は含まず、昨日までを含む。',
+    # 'Google Analytics can not provide precise results about today.'
+    #     => 'Google Analyticsは通常、当日について正確な解析結果を返しません。',
+
+    # more_analytics.yaml
+    'Visits' => '訪問数',
+    'Bounce Rate' => '直帰率',
+    'Avg. Time On Site' => '平均滞在時間',
+    'Avg. Pageviews' => '平均PV',
+    'Yesterday' => '昨日1日',
+    'Last 3 Days' => '直近3日間',
+    'Last A Week' => '直近1週間',
+    'Last 2 Weeks' => '直近2週間',
+    'Last 30 Days' => '直近30日間',
+    'Last 90 Days' => '直近90日間',
+
+    # themes.yaml
+    'Simple Access Report'
+        => 'アクセス解析シンプルレポート',
+    'A simple access stats report for any site.'
+        => 'あらゆるサイトに対して適用できるシンプルなアクセス解析レポートです。',
+    'Abount This Template' => 'このテンプレートについて',
+    'This template is not used in this theme, created as a placeholder to customize.'
+        => 'このテンプレートはテーマで使用しませんが、カスタマイズのためのプレースホルダーとして用意されています。',
+    'About This Theme' => 'このテーマについて',
+    'Access reporting theme provided as a part of MoreAnalytics plugin. That enpowers your site with big data in Google Analytics!'
+        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。MoreAnalyticsプラグインは、Google Analyticsに蓄積されたビッグデータを元にあなたのサイトを進化させます！',
+
+    'Config Template Module' => '設定用テンプレートモジュール',
+    'Global Header' => '共通ヘッダー',
+    'Global Footer' => '共通フッター',
+    'Monthly Archives' => '月別アーカイブ',
+    'Recent Entries' => '最近の記事',
+    'Entry Digest' => '記事の概要',
+    'Entry Header' => '記事ヘッダー',
+    'Compared Report Widget' => '比較レポートウィジェット',
+    'Metric Panel' => '指標パネル',
+
+    'Entry Body' => '記事本文',
+    'Summary Stats' => '概況',
+    'Mobile Stats' => 'モバイル統計',
+    'User Agents' => '利用環境',
+    'Traffic Stats' => '流入経路',
+    'Search Keywords' => '検索キーワード',
+    'Referrers' => '参照元',
+    'User Satisfaction' => 'ユーザー満足度',
+    'Popular Contents' => '人気コンテンツ',
+    'Goal Conversions' => '目標コンバージョン',
+    'EC Conversions' => 'ECコンバージョン',
+
+    'Reporting Widgets In Each Entry' => '各レポートのウィジェット',
+    'Reporting Widgets In Entry Listing' => 'レポート一覧のウィジェット',
+
+    'Processing Start Date' => '集計開始日',
+    'Processing End Date' => '集計完了日',
+
+    'Feed - Recent Reports' => '最近のレポートフィード',
+    'Report Listing' => 'レポート一覧',
+    'Report Archive' => 'レポートアーカイブ',
+
+    'Read More' => '詳細を表示',
+    'Weekly Report' => '週次レポート',
+    'Monthly Report' => '月次レポート',
+    'Sidebar' => 'サイドバー',
+
+    'Reported on [_1]' => '報告日: [_1]',
+    'Reported by [_1]' => '報告者: [_1]',
+    '[_1] ~ [_2]' => '[_1] 〜 [_2]',
+    'This Time' => '今回',
+    'Previous' => '前回',
+
+    'Visits' => '訪問数',
+    'Percentage' => '割合',
+    'Rest' => 'その他',
+    'Total' => '合計',
+
+    'OS' => 'OS',
+    'Ver.' => 'Ver',
+    'Browser' => 'ブラウザー',
+
+    'Keyword' => 'キーワード',
+
+    'Referrer' => '参照元',
+    'Referrers' => '参照元',
+
+    'Page' => 'ページ',
+    'PV' => 'PV',
+    'Visitors' => '訪問者数',
+
+    'New Visits' => '新規訪問',
+    'Avg. PV' => '平均PV',
+    'Avg. Page Stay' => '平均ページ滞在',
+    'Avg. Site Stay' => '平均サイト滞在',
 
     # tmpl/playground.tmpl
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
@@ -75,6 +171,29 @@ use vars qw( %Lexicon );
     'Error: Invalid result.' => 'エラー: 不正なレスポンスです。',
     'Error:' => 'エラー: ',
 
+    # tmpl/config/blog.tmpl
+    'DESCRIPTION_KEYWORD_ASSISTANT'
+        => 'キーワードアシスタントは、記事やウェブページの編集画面でサイドバーに表示されるウィジェットです。人気キーワードを表示して、コンテンツの作成を支援します。',
+
+    'Ignore Keywords - Perfect Match' => '除外キーワード (完全一致)',
+    'Ignore Keywords' => '除外キーワード',
+    'Inherited Ignore Keywords' => '継承される除外キーワード',
+    'Enter at most 5 keywords to ignore as each lines. (not provided) is always ignored.'
+        => '1行ずつ除外するキーワードを最大5件まで入力してください。(not provided)は常に除外されます。',
+
+    'Ignore Keywords - Regex. Match' => '除外キーワード (正規表現)',
+    'Ignore Regex.' => '除外正規表現',
+    'Inherited Ignore Regex.' => '継承される除外正規表現',
+    'Enter keyword regular expression to ignore. ex: (Movable|Type|MT)'
+        => '除外するキーワードの正規表現を入力してください。例: (Movable|Type|MT)',
+
+    'Inherit Settings' => '設定の継承',
+    'Inherit from system' => 'システム全体の設定から継承する',
+    'Inherit from website' => 'ウェブサイトの設定から継承する',
+    'Not inherit, define at here' => '継承せずここで定義する',
+
+    '(No Settings)' => '(設定なし)',
+
     # tmpl/edit_ma_period.tmpl
     'Create Aggregation Period' => '集計期間の作成',
     'Edit Aggregation Period' => '集計期間の編集',
@@ -97,6 +216,30 @@ use vars qw( %Lexicon );
     '_PREFIX_TO' => ' ',
     '_SUFFIX_TO' => ' まで',
 
+    # tmpl/keyword_assistant.tmpl
+    'Keyword Assistant' => 'キーワードアシスタント',
+    'Show Keywords' => 'キーワードを表示',
+    'Hide Keywords' => 'キーワードを隠す',
+    'Open Options' => '設定を開く',
+    'Close Options' => '設定を閉じる',
+
+    'Unknown metric.' => '不明な指標です',
+    'Unknown term.' => '不明な期間です',
+    'Unknown blog or website.' => 'ブログまたはウェブサイトが不明です',
+    'Unknown period as term: id=[_1].' => '期間として不明な集計期間です: id=[_1]',
+
+    'Metric' => '指標',
+    'Term' => '期間',
+    'Keyword Count' => 'キーワード件数',
+
+    'Save To All Blogs' => '全ブログ共通として保存',
+    'Save As Default' => 'デフォルトに保存',
+    'Close' => '閉じる',
+    'Saved.' => '保存しました',
+
+    'JSON parse error.' => 'JSON解析エラー',
+    'Invalid result format.' => '結果の形式が正しくありません',
+
     # lib/MT/MoreAnalytics/Tags.pm
     '[_1] requires blog context.' => '[_1] はブログコンテキストが必要です。',
     'Google Analytics is not ready for blog or website ID:[_1]'
@@ -108,6 +251,10 @@ use vars qw( %Lexicon );
     '[_1] can not detect path info.' => '[_1] でパス情報が取得できません。',
     '[_1] is not found.' => '[_1] が見つかりません。',
     'Aggregation period [_1] not found.' => '集計期間 [_1] が見つかりません。',
+
+    # lib/MT/MoreAnalytics/Tags/Util.pm
+    'The value "[_3]" in [_2] attribute of [_1] tag must be valid date format.'
+        => '[_1]タグの[_2]属性の値「[_3]」は正しい日付の形式である必要があります。',
 
     # tmpl/playground/profiles.tmpl
     'Default' => 'デフォルト',
@@ -157,6 +304,10 @@ use vars qw( %Lexicon );
 
     # lib/MT/MoreAnalytics/CMS/Listing.pm
     ' - Uncollected' => ' - 未集計',
+
+    # lib/MT/MoreAnalytics/CMS/KeywordAssitant.pm
+    'Unknown blog.' => '不明なブログです',
+    'Unknown user.' => '不明なユーザーです',
 
     # lib/MT/MoreAnalytics/CMS/Widget.pm
     'Permission denigied.' => 'この操作を行う権限はありません。',

@@ -1,0 +1,45 @@
+<div class="widget widget-<$mt:Var name='widget_id'$>">
+  <h2><$mt:Var name="widget_title"></h2>
+  <div class="widget-body row">
+
+<mt:If name="widget_layout" eq="double">
+<mt:GACompareEntries entries="2" by_category="$compare_by_category" by_author="$compare_by_author">
+    <div class="col-md-6">
+
+      <h3>
+        <mt:If name="__is_current__">
+        <__trans phrase="This Time">
+        <mt:Else>
+        <__trans phrase="Previous">
+        </mt:If>
+        <small><__trans phrase="[_1] ~ [_2]" params="<$mt:MASimpleReportStartDate$>%%<$mt:MASimpleReportEndDate$>"></small>
+      </h3>
+
+  <$mt:MASimpleReportStartDate format="%Y-%m-%d" setvar="start_date"$>
+  <$mt:MASimpleReportEndDate format="%Y-%m-%d" setvar="end_date"$>
+  
+  <mt:GAReportArgs start_date="$start_date" end_date="$end_date">
+  <mt:Var name="widget_template">
+  </mt:GAReportArgs>
+
+    </div>
+
+</mt:GACompareEntries>
+
+<mt:Else>
+
+    <div class="col-md-12">      
+
+  <$mt:MASimpleReportStartDate format="%Y-%m-%d" setvar="start_date"$>
+  <$mt:MASimpleReportEndDate format="%Y-%m-%d" setvar="end_date"$>
+
+  <mt:GAReportArgs start_date="$start_date" end_date="$end_date">
+  <mt:Var name="widget_template">
+  </mt:GAReportArgs>
+
+    </div>
+
+</mt:If>
+
+  </div>
+</div>

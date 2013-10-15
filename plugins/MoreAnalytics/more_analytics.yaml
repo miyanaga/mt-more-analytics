@@ -1,0 +1,84 @@
+period_methods:
+    yesterday:
+        available_for:
+            to: 1
+        label: Yesterday(The last day)
+        order: 100
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_yesterday
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_yesterday
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
+    today:
+        available_for:
+            to: 1
+        label: Today(The day)
+        order: 200
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_today
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_today
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_free
+    days_before:
+        label: Days before
+        order: 300
+        template: period_methods/days_before.tmpl
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_days_before
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_days_before
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_days_before
+    fixed:
+        label: Fixed date
+        order: 400
+        template: period_methods/fixed.tmpl
+        summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_fixed
+        timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_fixed
+        validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_fixed
+
+keyword_assistant_metrics:
+    visits:
+        label: Visits
+        order: 100
+        metric: visits
+        # code: $MoreAnalytics::MT::MoreAnalytics::KeywordAssistant::hdlr_default_metric_handler
+    visit_bounce_rate:
+        label: Bounce Rate
+        order: 200
+        metric: visitBounceRate
+        sort: ascend
+        formatter: sub { sprintf('%0.2f%%', $_[0]) }
+    avg_time_on_site:
+        label: Avg. Time On Site
+        order: 300
+        metric: avgTimeOnSite
+        formatter: sub { sprintf('%d:%02d', $_[0]/60, $_[0]%60) } #:
+    pageviews_per_visit:
+        label: Avg. Pageviews
+        order: 400
+        metric: pageviewsPerVisit
+        formatter: sub { sprintf('%0.2f', $_[0]) }
+
+keyword_assistant_terms:
+    yesterday:
+        label: Yesterday
+        order: 100
+        # Date range contains both of the first and the last
+        days: 1
+        # code: $MoreAnalytics::MT::MoreAnalytics::KeywordAssistant::hdlr_default_term_handler
+    last_3_days:
+        label: Last 3 Days
+        order: 200
+        unit: day
+        days: 3
+    last_week:
+        label: Last A Week
+        order: 300
+        days: 7
+    last_week:
+        label: Last 2 Weeks
+        order: 300
+        days: 14
+    last_month:
+        label: Last 30 Days
+        order: 400
+        days: 30
+    last_3_months:
+        label: Last 90 Days
+        order: 500
+        days: 90
+

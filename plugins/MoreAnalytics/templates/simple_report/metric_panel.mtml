@@ -1,0 +1,19 @@
+<mt:If name="type" eq="percentage">
+  <$mt:GAValue name="$metric" sprintf="%0.2f%%" setvar="value"$>
+<mt:ElseIf name="type" eq="float">
+  <$mt:GAValue name="$metric" sprintf="%0.2f" setvar="value"$>
+<mt:ElseIf name="type" eq="second">
+  <$mt:GAValue name="$metric" setvar="value"$>
+  <$mt:Var name="value" op="%" value="60" setvar="second"$>
+  <$mt:Var name="value" op="-" value="$second" setvar="minute"$>
+  <$mt:Var name="minute" op="/" value="60" setvar="minute"$>
+  <mt:SetVarBlock name="value"><$mt:Var name="minute" sprintf="%d"$>:<$mt:Var name="second"$></mt:SetVarBlock>
+<mt:Else>
+  <$mt:GAValue name="$metric" numify="1" setvar="value"$>
+</mt:If>
+
+<div class="metric-panel">
+  <div class="label"><$mt:Var name="label"$></div>
+  <div class="value length-<$mt:Var name='value' count_characters='1'$>"><$mt:Var name="value"$></div>
+  <$mt:GASparkline name="$metric" append_js_to="page_javascript" class="sparkline" element="div" config:width="144" height="50"$>
+</div>

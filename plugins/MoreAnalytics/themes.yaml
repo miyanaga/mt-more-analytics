@@ -1,0 +1,165 @@
+more_analytics_simple_report:
+    id: more_analytics_simple_report
+    label: Simple Access Report
+    description: <__trans phrase="A simple access stats report for any site.">
+    author_name: ideaman's Inc.
+    author_link: http://www.ideamans.com/
+    version: 0.9
+    class: blog
+    # static_path: themes/simple-report/static
+    l10n_class: MT::MoreAnalytics::L10N
+    thumbnail_file: thumb.png
+    thumbnail_file_medium: thumb-medium.png
+    thumbnail_file_small: thumb-small.png
+    elements:
+        default_categories:
+            component: core
+            importer: default_categories
+            data:
+                monthly:
+                    label: Monthly Report
+                    children:
+                        dummy:
+                            label: Dummy
+                weekly:
+                    label: Weekly Report
+
+        custom_fields:
+            component: commercial
+            importer: custom_fields
+            data:
+                ma_01_start_date:
+                    obj_type: entry
+                    type: datetime
+                    options: date
+                    name: Processing Start Date
+                    required: 1
+                    tag: MASimpleReportStartDate
+                    basename: ma_simpe_report_start_date
+                ma_02_end_date:
+                    obj_type: entry
+                    type: datetime
+                    options: date
+                    name: Processing End Date
+                    required: 1
+                    tag: MASimpleReportEndDate
+                    basename: ma_simpe_report_end_date
+
+        blog_static:
+            component: core
+            importer: blog_static_files
+            data:
+                - bootstrap
+        template_set:
+            component: core
+            importer: template_set
+            name: Template Set
+            data:
+                label: Simple Access Report
+                base_path: templates/simple_report
+                require: 1
+                templates:
+                    index:
+                        main_index:
+                            label: Main Index
+                            outfile: index.html
+                            rebuild_me: 1
+                        styles:
+                            label: Stylesheet
+                            outfile: styles.css
+                            rebuild_me: 1
+                        javascript:
+                            label: JavaScript
+                            outfile: script.js
+                            rebuild_me: 1
+                        feed_recent:
+                            label: Feed - Recent Reports
+                            outfile: atom.xml
+                            rebuild_me: 1
+                    archive:
+                        entry_listing:
+                            label: Entry Listing
+                            mappings:
+                                monthly:
+                                    archive_type: Monthly
+                    individual:
+                        entry:
+                            label: Entry
+                            mappings:
+                                entry_archive:
+                                    archive_type: Individual
+                    module:
+                        config:
+                            label: Config Template Module
+                        global_header:
+                            label: Global Header
+                        global_footer:
+                            label: Global Footer
+                        sidebar:
+                            label: Sidebar
+                        entry_header:
+                            label: Entry Header
+                        entry_digest:
+                            label: Entry Digest
+                        recent_entries:
+                            label: Recent Entries
+                        monthly_archives:
+                            label: Monthly Archives
+                        compared_widget:
+                            label: Compared Report Widget
+                        metric_panel:
+                            label: Metric Panel
+                    system:
+                        comment_listing:
+                            label: Comment Listing
+                            description: Improved listing of comments.
+                        comment_preview:
+                            label: Comment Preview
+                        comment_response:
+                            label: Comment Response
+                        dynamic_error:
+                            label: Dynamic Error
+                        popup_image:
+                            label: Popup Image
+                        search_results:
+                            label: Search Results
+                    widget:
+                        entry_body:
+                            label: Entry Body
+                        summary_stats:
+                            label: Summary Stats
+                        traffic_stats:
+                            label: Traffic Stats
+                        search_keywords:
+                            label: Search Keywords
+                        referrers:
+                            label: Referrers
+                        user_agents:
+                            label: User Agents
+                        mobile_stats:
+                            label: Mobile Stats
+                        user_satisfaction:
+                            label: User Satisfaction
+                        popular_contents:
+                            label: Popular Contents
+
+                    widgetset:
+                        entry_archive_report:
+                            order: 100
+                            label: Reporting Widgets In Each Entry
+                            widgets:
+                                - Entry Body
+                                - Summary Stats
+                                - Traffic Stats
+                                - Search Keywords
+                                - Referrers
+                                - User Agents
+                                - Mobile Stats
+                                - User Satisfaction
+                                - Popular Contents
+                        entry_listing_report:
+                            order: 200
+                            label: Reporting Widgets In Entry Listing
+                            widgets:
+                                - Entry Body
+                                - Summary Stats

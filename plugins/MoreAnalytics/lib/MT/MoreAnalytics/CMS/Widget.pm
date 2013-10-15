@@ -76,9 +76,13 @@ sub custom_widget_ajax {
     my $widget = 'ma_custom_widget'; # Placeholder # $q->param('widget');
 
     # Check permission only for blog widget editing
-    if ( $blog && $action ne 'view' ) {
-        my $user = $app->user;
-        return $app->json_error(plugin->translate('Permission denigied.'))
+    my $user = $app->user or return $app->json(plugin->translate('Permission denied.'));
+    if ( $blog && $action eq 'view' ) {
+        return $app->json_error(plugin->translate('Permission denied.'))
+            if !$user->is_superuser
+                && !$user->permissions($blog->id);
+    } else {
+        return $app->json_error(plugin->translate('Permission denied.'))
             if !$user->is_superuser
                 && !$user->permissions($blog->id)->can_do('ma_edit_custom_widget');
     }
@@ -90,7 +94,7 @@ sub custom_widget_ajax {
     if ( $action eq 'edit' ) {
 
         # Return raw template
-        return $app->json_result({template => $current_template || 'welcome'});
+        return $app->json_result({template => $current_template || ''});
     } elsif ( $action eq 'save' or $action eq 'preview' or $action eq 'view' ) {
 
         # Template is current or passed

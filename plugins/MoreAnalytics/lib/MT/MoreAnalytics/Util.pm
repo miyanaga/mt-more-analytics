@@ -4,15 +4,22 @@ use strict;
 use warnings;
 
 use base qw(Exporter);
-use MT::Util qw(format_ts epoch2ts);
+use MT::Util qw(format_ts epoch2ts ts2epoch);
+use MT::MoreAnalytics::Provider;
+use MT::MoreAnalytics::Request;
 
-our @EXPORT = qw(plugin treat_config _stderr _dumper);
-our @EXPORT_OK = qw(
+our @EXPORT = qw(
+    _stderr
+    _dumper
+    plugin
+    ga_simple_request
     actual_config
     md5_hash
     are_all_days_past
     lookup_fileinfo
     observe_date_range
+    treat_config
+    date_diff
 );
 
 my @INHERITABLE_CONFIG = qw(
@@ -20,9 +27,12 @@ my @INHERITABLE_CONFIG = qw(
     cache_expires_for_past
     observe_days
     observe_today
+    ka_ignore_keywords
+    ka_ignore_regex
 );
 
 our $NOW;
+
 
 sub now {
     $NOW || time;
@@ -144,6 +154,57 @@ sub observe_date_range {
         start_date  => format_ts( '%Y-%m-%d', epoch2ts( $blog, $start ) ),
         end_date    => format_ts( '%Y-%m-%d', epoch2ts( $blog, $end ) ),
     );
+}
+
+sub ga_simple_request {
+    my ( $app, $param, %opts ) = @_;
+    my $eh = $opts{eh} ||= $app;
+    my $blog = $opts{blog} ||= $app->can('blog')? $app->blog: undef;
+
+    # Prepare MoreAnalytics provider
+    MT::MoreAnalytics::Provider->is_ready( $app, $blog )
+        or return $eh->error(plugin->translate('Google Analytics is not set up for this blog or website.'));
+
+    my $ma = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog )
+        or return $eh->error(plugin->translate('Cannot create MoreAnalytics provider object.'));
+
+    # Send request
+    my $request = MT::MoreAnalytics::Request->new($param);
+    defined( my $data = $ma->_request( $app, $request->normalize ) )
+        or return $eh->error($app->errstr);
+
+    $data;
+}
+
+sub normalize2epoch {
+    my ( $blog, $date ) = @_;
+    my $ts;
+
+    if ( $date =~ /^\d{8}$/ ) {
+
+        # Assumes TS
+        $ts = $date;
+    } elsif ( $date =~ m!^(\d+)[\-/](\d+)[\-/](\d+)$! ) {
+
+        # yyyy-mm-dd
+        $ts = sprintf('%04d%02d%02d', $1, $2, $3);
+    } else {
+        return $date;
+    }
+
+    ts2epoch( $blog, $ts, $blog? 1: 0 );
+}
+
+sub date_diff {
+    my ( $blog, $start, $end ) = @_;
+
+    $start = normalize2epoch( $blog, $start );
+    $end = normalize2epoch( $blog, $end );
+
+    my $a_day = 60 * 60 * 24;
+    my $days = int( ( $end - $start ) / $a_day );
+
+    $days;
 }
 
 1;

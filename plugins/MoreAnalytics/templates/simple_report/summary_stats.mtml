@@ -1,0 +1,14 @@
+<mt:SetVar name="widget_id" value="summary-stats">
+<mt:SetVar name="widget_title" value="<__trans phrase='Summary Stats'>">
+<mt:SetVarTemplate name="widget_template">
+
+  <mt:GARequest sparkline="1" metrics="visits,newVisits,pageviewsPerVisit,pageviews">
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="visits" type="integer" label="<__trans phrase='Visits'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="newVisits" type="integer" label="<__trans phrase='New Visits'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="pageviews" type="integer" label="<__trans phrase='PV'>"$>
+    <$mt:Include module="<__trans phrase='Metric Panel'>" metric="pageviewsPerVisit" type="float" label="<__trans phrase='Avg. PV'>"$>
+  </mt:GARequest>
+
+</mt:SetVarTemplate>
+
+<$mt:Include module="<__trans phrase='Compared Report Widget'>"$>

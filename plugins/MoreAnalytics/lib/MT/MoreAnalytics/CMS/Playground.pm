@@ -14,13 +14,15 @@ sub index {
     my $blog_id = $blog->id;
     my %param;
 
+
     # Check permission
     my $user = $app->user;
     return $app->permission_denied()
         if !$user->is_superuser
             && !$user->permissions($app->param('blog_id') || 0)->can_do('ma_playground');
 
-    my $plugindata = GoogleAnalytics::current_plugindata( $app, $app->blog );
+    my $plugindata = GoogleAnalytics::current_plugindata( $app, $app->blog )
+        or return 0;
     my $config = $plugindata->data;
     my $profile_id = $config->{profile_id} || return $app->error('No profile');
 

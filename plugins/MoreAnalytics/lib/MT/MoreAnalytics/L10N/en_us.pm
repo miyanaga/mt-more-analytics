@@ -11,6 +11,11 @@ use vars qw( %Lexicon );
     '_SUFFIX_FROM' => ' ',
     '_PREFIX_TO' => 'To ',
     '_SUFFIX_TO' => ' ',
+
+    'DESCRIPTION_KEYWORD_ASSISTANT'
+        => 'Keyword Assistant is a sibe-bar widget on entry or page editing screen. It shows popular keywords to help writing.',
+
+    'BEFORE_INCLUDE_TODAY' => '`From x days before` term ',
 );
 
 1;

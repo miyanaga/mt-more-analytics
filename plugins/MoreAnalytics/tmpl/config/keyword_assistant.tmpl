@@ -1,0 +1,130 @@
+<mtapp:settinggroup
+  id="ma-keyword-assistant">
+
+  <mt:If name="inherit_from">
+
+    <style type="text/css">
+    #ma-ka-ignore-keywords-field,
+    #ma-ka-ignore-keywords-parent-field,
+    #ma-ka-ignore-regex-field,
+    #ma-ka-ignore-regex-parent-field { display: none; }
+    #ma-ka-ignore-keywords { height: 5em; }
+    </style>
+
+    <script type="text/javascript">
+    (function($) {
+
+      function updateState() {
+        if ( $('#ma-inherit-ka-ignore-keywords-true').prop('checked') ) {
+          $('#ma-ka-ignore-keywords-field').hide();
+          $('#ma-ka-ignore-keywords-parent-field').show();
+        } else {
+          $('#ma-ka-ignore-keywords-field').show();
+          $('#ma-ka-ignore-keywords-parent-field').hide();
+        }
+
+        if ( $('#ma-inherit-ka-ignore-regex-true').prop('checked') ) {
+          $('#ma-ka-ignore-regex-field').hide();
+          $('#ma-ka-ignore-regex-parent-field').show();
+        } else {
+          $('#ma-ka-ignore-regex-field').show();
+          $('#ma-ka-ignore-regex-parent-field').hide();
+        }
+      }
+
+      $(function() {
+        updateState();
+        $('.update-state').click(updateState);
+      });
+
+    })(jQuery);
+    </script>
+
+  </mt:If>
+
+  <h2><__trans phrase="Keyword Assistant"></h2>
+  <p><__trans phrase="DESCRIPTION_KEYWORD_ASSISTANT"></p>
+
+  <h3><__trans phrase="Ignore Keywords - Perfect Match"></h3>
+
+  <mt:If name="inherit_from">
+
+    <mtapp:setting
+      id="ma-inherit-ka-ignore-keywords"
+      label="<__trans phrase='Inherit Settings'>"
+    >
+      <ul>
+        <li>
+          <label><input type="radio" id="ma-inherit-ka-ignore-keywords-true" class="radio update-state" name="inherit_ka_ignore_keywords" value="1"<mt:If name="inherit_ka_ignore_keywords"> checked="checked"</mt:If>>
+            <mt:If name="inherit_from" eq="system"><__trans phrase="Inherit from system">
+            <mt:Else><__trans phrase="Inherit from website">
+            </mt:If>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" id="ma-inherit-ka-ignore-keywords-false" class="radio update-state" name="inherit_ka_ignore_keywords" value="0"<mt:Unless name="inherit_ka_ignore_keywords"> checked="checked"</mt:Unless>>
+            <__trans phrase="Not inherit, define at here">
+          </label>
+        </li>
+      </ul>
+    </mtapp:setting>
+
+    <mtapp:setting
+      id="ma-ka-ignore-keywords-parent"
+      label="<__trans phrase='Inherited Ignore Keywords'>">
+      <strong><mt:var name="parent_ka_ignore_keywords"></strong>
+    </mtapp:setting>
+
+  </mt:If>
+
+  <mtapp:setting
+    id="ma-ka-ignore-keywords"
+    label="<__trans phrase='Ignore Keywords'>"
+    show_hint="1"
+    hint="<__trans phrase='Enter at most 5 keywords to ignore as each lines. (not provided) is always ignored.'>">
+    <textarea name="ka_ignore_keywords" id="ma-ka-ignore-keywords" class="text high"><mt:var name="ka_ignore_keywords" escape="html"></textarea>
+  </mtapp:setting>
+
+  <h3><__trans phrase="Ignore Keywords - Regex. Match"></h3>
+
+  <mt:If name="inherit_from">
+
+    <mtapp:setting
+      id="ma-inherit-ka-ignore-regex"
+      label="<__trans phrase='Inherit Settings'>"
+    >
+      <ul>
+        <li>
+          <label><input type="radio" id="ma-inherit-ka-ignore-regex-true" class="radio update-state" name="inherit_ka_ignore_regex" value="1"<mt:If name="inherit_ka_ignore_regex"> checked="checked"</mt:If>>
+            <mt:If name="inherit_from" eq="system"><__trans phrase="Inherit from system">
+            <mt:Else><__trans phrase="Inherit from website">
+            </mt:If>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" id="ma-inherit-ka-ignore-regex-false" class="radio update-state" name="inherit_ka_ignore_regex" value="0"<mt:Unless name="inherit_ka_ignore_regex"> checked="checked"</mt:Unless>>
+            <__trans phrase="Not inherit, define at here">
+          </label>
+        </li>
+      </ul>
+    </mtapp:setting>
+
+    <mtapp:setting
+      id="ma-ka-ignore-regex-parent"
+      label="<__trans phrase='Inherited Ignore Regex.'>">
+      <strong><mt:var name="parent_ka_ignore_regex"></strong>
+    </mtapp:setting>
+
+  </mt:If>
+
+  <mtapp:setting
+    id="ma-ka-ignore-regex"
+    label="<__trans phrase='Ignore Regex.'>"
+    show_hint="1"
+    hint="<__trans phrase='Enter keyword regular expression to ignore. ex: (Movable|Type|MT)'>">
+    <input type="text" name="ka_ignore_regex" id="ma-ka-ignore-regex" class="text" value="<mt:var name='ka_ignore_regex' escape='html'>">
+  </mtapp:setting>
+
+</mtapp:settinggroup>
