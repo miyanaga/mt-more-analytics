@@ -37,15 +37,8 @@ use vars qw( %Lexicon );
 
     # more_analytics.yaml
     'Visits' => '訪問数',
-    'Bounce Rate' => '直帰率',
-    'Avg. Time On Site' => '平均滞在時間',
-    'Avg. Pageviews' => '平均PV',
     'Yesterday' => '昨日1日',
-    'Last 3 Days' => '直近3日間',
     'Last A Week' => '直近1週間',
-    'Last 2 Weeks' => '直近2週間',
-    'Last 30 Days' => '直近30日間',
-    'Last 90 Days' => '直近90日間',
 
     # themes.yaml
     'Simple Access Report'
