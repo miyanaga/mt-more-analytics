@@ -128,7 +128,8 @@ sub on_save_filter_period {
         ) unless $id;
 
         # Validate params for method
-        my $pm = MT::MoreAnalytics::PeriodMethod->create($id);
+        my $pm = MT::MoreAnalytics::PeriodMethod->create($id)
+            or return $cb->error(plugin->translate('Unknown period method: [_1]', $id));
         $pm->params($values->{$side}) if $values->{$side};
 
         my $res = $pm->validate;

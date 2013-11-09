@@ -12,18 +12,6 @@ more_analytics_simple_report:
     thumbnail_file_medium: thumb-medium.png
     thumbnail_file_small: thumb-small.png
     elements:
-        default_categories:
-            component: core
-            importer: default_categories
-            data:
-                monthly:
-                    label: Monthly Report
-                    children:
-                        dummy:
-                            label: Dummy
-                weekly:
-                    label: Weekly Report
-
         custom_fields:
             component: commercial
             importer: custom_fields
@@ -35,7 +23,7 @@ more_analytics_simple_report:
                     name: Processing Start Date
                     required: 1
                     tag: MASimpleReportStartDate
-                    basename: ma_simpe_report_start_date
+                    basename: ma_simple_report_start_date
                 ma_02_end_date:
                     obj_type: entry
                     type: datetime
@@ -43,7 +31,7 @@ more_analytics_simple_report:
                     name: Processing End Date
                     required: 1
                     tag: MASimpleReportEndDate
-                    basename: ma_simpe_report_end_date
+                    basename: ma_simple_report_end_date
 
         blog_static:
             component: core
@@ -128,18 +116,6 @@ more_analytics_simple_report:
                             label: Entry Body
                         summary_stats:
                             label: Summary Stats
-                        traffic_stats:
-                            label: Traffic Stats
-                        search_keywords:
-                            label: Search Keywords
-                        referrers:
-                            label: Referrers
-                        user_agents:
-                            label: User Agents
-                        mobile_stats:
-                            label: Mobile Stats
-                        user_satisfaction:
-                            label: User Satisfaction
                         popular_contents:
                             label: Popular Contents
 
@@ -150,12 +126,6 @@ more_analytics_simple_report:
                             widgets:
                                 - Entry Body
                                 - Summary Stats
-                                - Traffic Stats
-                                - Search Keywords
-                                - Referrers
-                                - User Agents
-                                - Mobile Stats
-                                - User Satisfaction
                                 - Popular Contents
                         entry_listing_report:
                             order: 200

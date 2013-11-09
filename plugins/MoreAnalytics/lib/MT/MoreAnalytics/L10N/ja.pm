@@ -16,9 +16,7 @@ use vars qw( %Lexicon );
     'Manage Aggregation Period' => '集計期間の管理',
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
     'Yesterday(The last day)' => '昨日(集計前日)',
-    'Today(The day)' => '今日(集計当日)',
     'Days before' => '○日前',
-    'Fixed date' => '特定の日付',
     'New Period' => '集計期間の作成',
     'Google Analytics' => 'Google Analytics',
     'API Playground' => 'APIプレイグラウンド',
@@ -54,12 +52,12 @@ use vars qw( %Lexicon );
         => 'アクセス解析シンプルレポート',
     'A simple access stats report for any site.'
         => 'あらゆるサイトに対して適用できるシンプルなアクセス解析レポートです。',
-    'Abount This Template' => 'このテンプレートについて',
+    'About This Template' => 'このテンプレートについて',
     'This template is not used in this theme, created as a placeholder to customize.'
         => 'このテンプレートはテーマで使用しませんが、カスタマイズのためのプレースホルダーとして用意されています。',
     'About This Theme' => 'このテーマについて',
-    'Access reporting theme provided as a part of MoreAnalytics plugin. That enpowers your site with big data in Google Analytics!'
-        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。MoreAnalyticsプラグインは、Google Analyticsに蓄積されたビッグデータを元にあなたのサイトを進化させます！',
+    'Access reporting theme provided as a part of MoreAnalytics plugin.'
+        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。',
 
     'Config Template Module' => '設定用テンプレートモジュール',
     'Global Header' => '共通ヘッダー',
@@ -284,7 +282,7 @@ use vars qw( %Lexicon );
     'Summary' => '概要',
     '[_1] - [_2]' => '[_1]([_2])',
     'From "[_1]" to "[_2]".' => '"[_1]"から"[_2]"まで',
-
+    'Unknown period method: [_1]' => '不明な期間指定です: [_1]',
 
     # lib/MT/MoreAnalytics/App/CMS.pm
     'Google Analytics is not ready for blog or website ID:[_1]'
@@ -349,17 +347,10 @@ use vars qw( %Lexicon );
         => 'MoreAnalyticsプロバイダオブジェクトを作成できません。',
 
     # lib/MT/MoreAnalytics/PeriodMethod/Common.pm
-    'Fixed date' => '特定の日付',
     'Days before' => '○日前',
-    'Today(The day)' => '今日(集計当日)',
     'Yesterday(The last day)' => '昨日(集計前日)',
     '[_1] days before' => '[_1]日前',
     'Enter an integer zero or over.' => '0以上の整数を指定してください。',
-    'Invalid date format.' => '正しい日付の形式ではありません。',
-    'Invalid year.' => '年の指定が正しくありません。',
-    'Invalid month.' => '月の指定が正しくありません。',
-    'Invalid day.' => '日の指定が正しくありません。',
-    'Invalid date.' => '存在しない日付です。',
 
 );
 

@@ -15,7 +15,7 @@ sub create {
 
     my $self = $pkg->new;
     my $opts = MT->registry('more_analytics', 'period_methods', $id)
-        or die "Unknown period method id: $id";
+        or return;
 
     $self->id($id);
     $self->blog($blog);
