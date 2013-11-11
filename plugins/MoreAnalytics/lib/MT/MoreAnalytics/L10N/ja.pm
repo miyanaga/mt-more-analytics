@@ -276,6 +276,7 @@ use vars qw( %Lexicon );
     '[_1] - [_2]' => '[_1]([_2])',
     'From "[_1]" to "[_2]".' => '"[_1]"から"[_2]"まで',
     'Unknown period method: [_1]' => '不明な期間指定です: [_1]',
+    'Evaluation' => '実際の日付',
 
     # lib/MT/MoreAnalytics/App/CMS.pm
     'Google Analytics is not ready for blog or website ID:[_1]'
@@ -304,6 +305,8 @@ use vars qw( %Lexicon );
     'Basename is reuquired.' => 'ベースネームは必須です。',
     'Aggregation period basename of [_1] is already exists. Basename should be unique.'
         => '[_1]をベースネームに持つ集計期間はすでに存在します。ベースネームは一意のテキストを指定してください。',
+    'This period is from [_1] = [_2] to [_3] = [_4].'
+        => 'この集計期間は、[_1] = [_2] から　[_3] = [_4] までを対象にします。',
 
     # tmpl/widget/custom_main_widget.tmpl
     'Custom Main Widget' => 'カスタムメインウィジェット',
