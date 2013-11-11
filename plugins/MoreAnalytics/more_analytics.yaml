@@ -10,7 +10,11 @@ period_methods:
     days_before:
         label: Days before
         order: 300
-        template: period_methods/days_before.tmpl
+        template: |
+            <__trans_section component="MoreAnalytics">
+                <input type="text" class="text num" name="<mt:var name='side'>.days" value="<mt:var name='days' escape='html'>">
+                <__trans phrase="days before">
+            </__trans_section>
         summarize: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::summarize_days_before
         timestamp: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::timestamp_days_before
         validate: $MoreAnalytics::MT::MoreAnalytics::PeriodMethod::Common::validate_days_before
@@ -33,3 +37,11 @@ keyword_assistant_terms:
         label: Last A Week
         order: 300
         days: 7
+
+object_stats:
+    by_page_path: $MoreAnalytics::MT::MoreAnalytics::ObjectStat::ByPagePath::stats
+
+object_stats_tasks:
+    by_page_path:
+        order: 100
+        code: $MoreAnalytics::MT::MoreAnalytics::ObjectStat::ByPagePath::task

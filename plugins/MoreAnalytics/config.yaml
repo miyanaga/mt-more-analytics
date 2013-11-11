@@ -37,6 +37,9 @@ settings:
         Default: 1
     ka_ignore_regex:
         Default: ''
+    schema_version_checksum:
+        Default: 0
+        Scope: system
 
 config_setting:
     MoreAnalyticsKeywordCounts:
@@ -121,6 +124,7 @@ listing_screens:
             inherit: 0
 
 list_properties:
+    __stat_common: $MoreAnalytics::MT::MoreAnalytics::ObjectStat::Common::list_props
     entry: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::entry_list_props
     page: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::entry_list_props
     ma_period: $MoreAnalytics::MT::MoreAnalytics::Period::list_props
@@ -239,6 +243,15 @@ tasks:
                 my %config;
                 MT->component('MoreAnalytics')->load_config(\%config, 'system');
                 return 0 if $config{update_object_stats_soon};
+                my $checksum = MT->schema_version || 0;
+                foreach my $c ( @MT::Components ) {
+                    $checksum += $c->schema_version || 0;
+                }
+                if ( $checksum ne $config{schema_version_checksum} ) {
+                    $config{schema_version_checksum} = $checksum;
+                    MT->component('MoreAnalytics')->save_config(\%config, 'system');
+                    return 0;
+                }
                 $config{update_object_stats_freq_min} * 60;
             }
     ma_cleanup_cache:

@@ -283,13 +283,6 @@ use vars qw( %Lexicon );
     'Droped all caches.' => 'すべてのキャッシュを削除しました。',
     'GA:Aggregation Period' => 'GA:集計期間',
     'GA:Pageviews' => 'GA:ページビュー数',
-    'GA:Unique PV' => 'GA:ユニークPV数',
-    'GA:Entrance Rate' => 'GA:開始率',
-    'GA:Exit Rate' => 'GA:離脱率',
-    'GA:Bounce Rate' => 'GA:直帰率',
-    'GA:Avg. DL Time' => 'GA:平均DL時間',
-    'GA:Avg. Load Time' => 'GA:平均読込時間',
-    'GA:Avg. View Time' => 'GA:平均閲覧時間', 
     '%0.2f Sec.' => '%0.2f秒',
     '_DATE_FORMAT' => '%Y年%m月%d日',
 

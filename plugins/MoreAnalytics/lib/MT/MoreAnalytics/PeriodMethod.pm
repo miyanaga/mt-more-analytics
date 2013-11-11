@@ -19,6 +19,8 @@ sub create {
 
     $self->id($id);
     $self->blog($blog);
+    $self->plugin($opts->{plugin} || MT::MoreAnalytics::Util::plugin);
+
     $self->opts($opts);
     $self->params($params) if $params;
     $self->params($opts->{default_params})
@@ -48,6 +50,7 @@ sub _property {
 
 sub id { shift->_property(@_) }
 sub blog { shift->_property(@_) }
+sub plugin { shift->_property(@_) }
 
 sub _hash_values {
     my $self = shift;
@@ -100,12 +103,12 @@ sub template {
     my $id = $self->id;
     my $template = $self->opts('template') || '';
 
-    if ( $template =~ /\.tmpl$/ ) {
-        my $component = $self->opts('plugin') || plugin;
-        $template = $component->load_tmpl($template)
-            or die "No template for period $id";
-        $template = $template->text;
-    }
+    # FIXME MT->registry in 'create' not return plugin...
+    # if ( $template =~ /\.tmpl$/ ) {
+    #     $template = $self->plugin->load_tmpl($template)
+    #         or die "No template for period $id";
+    #     $template = $template->text;
+    # }
 
     $template;
 }
