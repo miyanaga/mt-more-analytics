@@ -16,9 +16,7 @@ use vars qw( %Lexicon );
     'Manage Aggregation Period' => '集計期間の管理',
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
     'Yesterday(The last day)' => '昨日(集計前日)',
-    'Today(The day)' => '今日(集計当日)',
     'Days before' => '○日前',
-    'Fixed date' => '特定の日付',
     'New Period' => '集計期間の作成',
     'Google Analytics' => 'Google Analytics',
     'API Playground' => 'APIプレイグラウンド',
@@ -39,27 +37,20 @@ use vars qw( %Lexicon );
 
     # more_analytics.yaml
     'Visits' => '訪問数',
-    'Bounce Rate' => '直帰率',
-    'Avg. Time On Site' => '平均滞在時間',
-    'Avg. Pageviews' => '平均PV',
     'Yesterday' => '昨日1日',
-    'Last 3 Days' => '直近3日間',
     'Last A Week' => '直近1週間',
-    'Last 2 Weeks' => '直近2週間',
-    'Last 30 Days' => '直近30日間',
-    'Last 90 Days' => '直近90日間',
 
     # themes.yaml
     'Simple Access Report'
         => 'アクセス解析シンプルレポート',
     'A simple access stats report for any site.'
         => 'あらゆるサイトに対して適用できるシンプルなアクセス解析レポートです。',
-    'Abount This Template' => 'このテンプレートについて',
+    'About This Template' => 'このテンプレートについて',
     'This template is not used in this theme, created as a placeholder to customize.'
         => 'このテンプレートはテーマで使用しませんが、カスタマイズのためのプレースホルダーとして用意されています。',
     'About This Theme' => 'このテーマについて',
-    'Access reporting theme provided as a part of MoreAnalytics plugin. That enpowers your site with big data in Google Analytics!'
-        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。MoreAnalyticsプラグインは、Google Analyticsに蓄積されたビッグデータを元にあなたのサイトを進化させます！',
+    'Access reporting theme provided as a part of MoreAnalytics plugin.'
+        => 'MoreAnalyticsプラグインの一部として提供されるアクセスレポート用テーマです。',
 
     'Config Template Module' => '設定用テンプレートモジュール',
     'Global Header' => '共通ヘッダー',
@@ -284,7 +275,8 @@ use vars qw( %Lexicon );
     'Summary' => '概要',
     '[_1] - [_2]' => '[_1]([_2])',
     'From "[_1]" to "[_2]".' => '"[_1]"から"[_2]"まで',
-
+    'Unknown period method: [_1]' => '不明な期間指定です: [_1]',
+    'Evaluation' => '実際の日付',
 
     # lib/MT/MoreAnalytics/App/CMS.pm
     'Google Analytics is not ready for blog or website ID:[_1]'
@@ -292,13 +284,6 @@ use vars qw( %Lexicon );
     'Droped all caches.' => 'すべてのキャッシュを削除しました。',
     'GA:Aggregation Period' => 'GA:集計期間',
     'GA:Pageviews' => 'GA:ページビュー数',
-    'GA:Unique PV' => 'GA:ユニークPV数',
-    'GA:Entrance Rate' => 'GA:開始率',
-    'GA:Exit Rate' => 'GA:離脱率',
-    'GA:Bounce Rate' => 'GA:直帰率',
-    'GA:Avg. DL Time' => 'GA:平均DL時間',
-    'GA:Avg. Load Time' => 'GA:平均読込時間',
-    'GA:Avg. View Time' => 'GA:平均閲覧時間', 
     '%0.2f Sec.' => '%0.2f秒',
     '_DATE_FORMAT' => '%Y年%m月%d日',
 
@@ -320,6 +305,8 @@ use vars qw( %Lexicon );
     'Basename is reuquired.' => 'ベースネームは必須です。',
     'Aggregation period basename of [_1] is already exists. Basename should be unique.'
         => '[_1]をベースネームに持つ集計期間はすでに存在します。ベースネームは一意のテキストを指定してください。',
+    'This period is from [_1] = [_2] to [_3] = [_4].'
+        => 'この集計期間は、[_1] = [_2] から　[_3] = [_4] までを対象にします。',
 
     # tmpl/widget/custom_main_widget.tmpl
     'Custom Main Widget' => 'カスタムメインウィジェット',
@@ -349,17 +336,10 @@ use vars qw( %Lexicon );
         => 'MoreAnalyticsプロバイダオブジェクトを作成できません。',
 
     # lib/MT/MoreAnalytics/PeriodMethod/Common.pm
-    'Fixed date' => '特定の日付',
     'Days before' => '○日前',
-    'Today(The day)' => '今日(集計当日)',
     'Yesterday(The last day)' => '昨日(集計前日)',
     '[_1] days before' => '[_1]日前',
     'Enter an integer zero or over.' => '0以上の整数を指定してください。',
-    'Invalid date format.' => '正しい日付の形式ではありません。',
-    'Invalid year.' => '年の指定が正しくありません。',
-    'Invalid month.' => '月の指定が正しくありません。',
-    'Invalid day.' => '日の指定が正しくありません。',
-    'Invalid date.' => '存在しない日付です。',
 
 );
 

@@ -15,10 +15,12 @@ sub create {
 
     my $self = $pkg->new;
     my $opts = MT->registry('more_analytics', 'period_methods', $id)
-        or die "Unknown period method id: $id";
+        or return;
 
     $self->id($id);
     $self->blog($blog);
+    # $self->plugin($opts->{plugin} || MT::MoreAnalytics::Util::plugin);
+
     $self->opts($opts);
     $self->params($params) if $params;
     $self->params($opts->{default_params})
@@ -48,6 +50,7 @@ sub _property {
 
 sub id { shift->_property(@_) }
 sub blog { shift->_property(@_) }
+sub from { shift->_property(@_) }
 
 sub _hash_values {
     my $self = shift;
@@ -89,6 +92,12 @@ sub summarize { shift->_run_as_code(@_) }
 sub timestamp { shift->_run_as_code(@_) }
 sub validate { shift->_run_as_code(@_) }
 
+sub readable {
+    my $self = shift;
+    my $ts = $self->timestamp();
+    MT::Util::format_ts(plugin->translate('_DATE_FORMAT'), $ts, $self->blog);
+}
+
 sub format_ga {
     my $self = shift;
     my $ts = $self->timestamp();
@@ -100,14 +109,24 @@ sub template {
     my $id = $self->id;
     my $template = $self->opts('template') || '';
 
-    if ( $template =~ /\.tmpl$/ ) {
-        my $component = $self->opts('plugin') || plugin;
-        $template = $component->load_tmpl($template)
-            or die "No template for period $id";
-        $template = $template->text;
-    }
+    # FIXME MT->registry in 'create' not return plugin...
+    # if ( $template =~ /\.tmpl$/ ) {
+    #     $template = $self->plugin->load_tmpl($template)
+    #         or die "No template for period $id";
+    #     $template = $template->text;
+    # }
 
     $template;
+}
+
+sub template_param {
+    my $self = shift;
+
+    my $template_param = $self->opts('template_param') or return;
+    $template_param = MT->handler_to_coderef($template_param) or return;
+    return if ref $template_param ne 'CODE';
+
+    $template_param->(@_) if ref $template_param
 }
 
 sub all_methods {

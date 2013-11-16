@@ -20,21 +20,28 @@ my %OBSERVE_MAP = map {
     $_ => $v;
 } @OBSERVE_FIELDS;
 
-sub update_object_stats_freq {
-    my %config;
-    plugin->load_config(\%config, 'system');
-    $config{update_object_stats_freq_min} * 60;
-}
-
 sub update_object_stats {
     my $task = shift;
     my $app = MT->instance;
 
-    # Update update soon flag
+    # Update soon flag
     treat_config( sub {
         my $config = shift;
         $config->{update_object_stats_soon} = 0;
     }, 'system' );
+
+    # Subtasks
+    my $subtasks = MT->registry('more_analytics', 'object_stats_tasks');
+    my @subtasks = map {
+        MT->handler_to_coderef($_->{code});
+    } sort {
+        ( $a->{order} || 1000 ) <=> ( $b->{order} || 1000 )
+    } map {
+        my $st = $subtasks->{$_};
+        $st = { order => 1000, code => $st } unless ref $st eq 'HASH';
+        $st->{id} = $_;
+        $st;
+    } keys %$subtasks;
 
     my $iter = MT->model('blog')->load_iter( { class => '*' } )
         or return;
@@ -42,9 +49,11 @@ sub update_object_stats {
     # Loop blogs and periods.
     my %blog_ids;
     my %period_ids;
-    my $queries = 0;
-    my $stats = 0;
-    my $removed = 0;
+    my %report = (
+        queries => 0,
+        stats => 0,
+        removed => 0,
+    );
 
     while ( my $blog = $iter->() ) {
         $blog_ids{$blog->id} = 1;
@@ -64,59 +73,24 @@ sub update_object_stats {
             MT::MoreAnalytics::Provider->is_ready( $app, $blog ) or next;
             my $ma = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
 
-            my $request = MT::MoreAnalytics::Request->new(
-                $p->ga_date_range($blog),
-                metrics     => join(',', values %OBSERVE_MAP),
-                dimensions  => 'pagePath',
-            );
+            foreach my $subtask ( @subtasks ) {
+                next if ref $subtask ne 'CODE';
+                my $eh = MT::ErrorHandler->new;
+                my $res = $subtask->( $eh,
+                    app         => $app,
+                    task        => $subtask,
+                    report      => \%report,
+                    blog        => $blog,
+                    period      => $p,
+                    age         => $age,
+                    provider    => $ma
+                );
 
-            my $data = $ma->_request($app, $request->normalize);
-            $queries++;
+                if ( !defined($res) || $eh->errstr ) {
+                    my $label = $subtask->{label} || $subtask->{id};
+                    $label = $label->() if ref $label eq 'CODE';
 
-            my $items = $data->{items};
-            next if ref $items ne 'ARRAY';
-
-            foreach my $r ( @$items ) {
-
-                # Lookup object via fileinfo
-                my $fi = MT::MoreAnalytics::Util::lookup_fileinfo( $blog, $r->{pagePath} ) or next;
-
-                my ( $ds, $id );
-                if ( $id = $fi->entry_id ) {
-                    $ds = 'entry';
-                } elsif ( $id = $fi->category_id ) {
-                    $ds = 'category';
-                } elsif ( $id = $fi->template_id ) {
-                    $ds = 'template';
-                } else {
-                    next;
                 }
-
-                # Store to object_stat
-                my $values = {
-                    blog_id => $blog->id,
-                    object_ds => $ds,
-                    object_id => $id,
-                    ma_period_id => $p->id,
-                };
-
-                my $stat = MT->model('ma_object_stat')->load($values)
-                    || MT->model('ma_object_stat')->new;
-
-                $values = {
-                    %$values,
-                    age => $age,
-                    map {
-                        my $snake = $_;
-                        my $camel = $OBSERVE_MAP{$_};
-
-                        ( $snake => $r->{$camel} || 0 );
-                    } keys %OBSERVE_MAP,
-                };
-
-                $stat->set_values($values);
-                $stat->save;
-                $stats++;
             }
 
             # Cleanup
@@ -125,7 +99,7 @@ sub update_object_stats {
                 ma_period_id => $p->id,
                 age => { '<' => $age },
             };
-            $removed = MT->model('ma_object_stat')->count($terms);
+            $report{removed} += MT->model('ma_object_stat')->count($terms) || 0;
             MT->model('ma_object_stat')->remove($terms);
         }
     }
@@ -136,7 +110,7 @@ sub update_object_stats {
         $app->log({
             message => plugin->translate(
                 'MoreAnalytics updated object stats. [_1] blog(s), [_2] period(s), [_3] query(ies), [_4] stat(s).',
-                    scalar keys %blog_ids, scalar keys %period_ids, $queries, $stats
+                    scalar keys %blog_ids, scalar keys %period_ids, $report{queries}, $report{stats}
             ),
             class    => 'system',
             category => 'plugin',

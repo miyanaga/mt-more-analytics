@@ -48,6 +48,13 @@ sub on_edit_period {
         # Value
         $param->{id} = $obj->id;
         $param->{name} = $obj->name;
+
+        $param->{summary} = plugin->translate('This period is from [_1] = [_2] to [_3] = [_4].',
+            $obj->from_method->summarize,
+            $obj->from_method->readable,
+            $obj->to_method->summarize,
+            $obj->to_method->readable,
+        );
     } else {
         $obj = MT::MoreAnalytics::Period->new;
         $obj->from_method_id('days_before');
@@ -70,15 +77,21 @@ sub on_edit_period {
             }
         }
 
-        my @methods = map { {
-            %$method_params,
-            side        => $side,
-            id          => $_->id,
-            label       => $_->opts('label'),
-            is_selected => $_->id eq $current_id ? 1 : 0,
-            form_id     => join('-', $side, $_->id),
-            template    => $_->template,
-        } } @$methods;
+        my @methods = map {
+            my $values = {
+                %$method_params,
+                side        => $side,
+                id          => $_->id,
+                label       => $_->opts('label'),
+                is_selected => $_->id eq $current_id ? 1 : 0,
+                form_id     => join('-', $side, $_->id),
+                template    => $_->template,
+            };
+
+            $_->template_param($cb, $app, $values, $obj);
+
+            $values;
+        } @$methods;
 
         my $methods_name = $side . '_methods';
         $param->{$methods_name} = \@methods;
@@ -128,7 +141,8 @@ sub on_save_filter_period {
         ) unless $id;
 
         # Validate params for method
-        my $pm = MT::MoreAnalytics::PeriodMethod->create($id);
+        my $pm = MT::MoreAnalytics::PeriodMethod->create($id)
+            or return $cb->error(plugin->translate('Unknown period method: [_1]', $id));
         $pm->params($values->{$side}) if $values->{$side};
 
         my $res = $pm->validate;

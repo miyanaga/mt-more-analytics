@@ -13,13 +13,6 @@ __PACKAGE__->install_properties(
             'ma_period_id'   => 'integer not null',
             'age'            => 'integer',
             'pageviews'      => 'integer',
-            'unique_pageviews' => 'integer',
-            'entrance_rate'  => 'float',
-            'exit_rate'      => 'float',
-            'visit_bounce_rate' => 'float',
-            'avg_page_download_time' => 'float',
-            'avg_page_load_time' => 'float',
-            'avg_time_on_page' => 'float',
         },
         indexes => {
             blog_id        => 1,

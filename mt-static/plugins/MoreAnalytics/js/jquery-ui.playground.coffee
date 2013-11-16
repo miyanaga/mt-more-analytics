@@ -230,10 +230,6 @@ $.widget 'ui.maPlayground',
       console.log data
 
       # Headers
-      $th = $('<th class="col head cb"><span class="col-label" /></th>')
-      $th.find('.col-label').text(@options.indexLabel)
-      $headers.append $th
-
       $.each data.result.headers, (i, h) =>
         $th = $('<th class="col head"><div class="col-label key" /></th>')
         $th.find('.key').text(h)
@@ -246,9 +242,6 @@ $.widget 'ui.maPlayground',
       # Values
       $.each data.result.items, (i, item) =>
         $tr = $('<tr />')
-
-        $td = $('<td class="col" />').text(i + 1)
-        $tr.append $td
 
         $.each data.result.headers, (j, h) =>
           $td = $('<td class="col" />').text(item[h])

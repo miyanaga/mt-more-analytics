@@ -26,6 +26,14 @@
     <mt:var name="error" escape="html">
   </mtapp:statusmsg>
 </mt:if>
+<mt:if name="summary">
+  <mtapp:statusmsg
+     id="summary"
+     class="info"
+     can_close="1">
+    <mt:var name="summary" escape="html">
+  </mtapp:statusmsg>
+</mt:if>
 </mt:setvarblock>
 
 <mt:include name="include/header.tmpl">

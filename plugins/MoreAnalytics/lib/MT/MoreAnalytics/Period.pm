@@ -49,6 +49,11 @@ sub _period_method {
     $tm->blog($blog) if $blog;
     $tm->params( $self->$meth );
 
+    if ( $col eq 'to_method' ) {
+        my $from_meth = $self->from_method;
+        $tm->from($from_meth);
+    }
+
     $tm;
 }
 
@@ -91,6 +96,15 @@ sub summary {
         'From "[_1]" to "[_2]".',
         $self->from_method->summarize,
         $self->to_method->summarize,
+    );
+}
+
+sub evaluate {
+    my $self = shift;
+    plugin->translate(
+        '[_1] ~ [_2]',
+        $self->from_method->readable,
+        $self->to_method->readable,
     );
 }
 
@@ -158,6 +172,15 @@ sub list_props {
             html => sub {
                 my ( $prop, $obj, $app ) = @_;
                 $obj->summary;
+            },
+        },
+        evaluation => {
+            label => 'Evaluation',
+            order => 400,
+            display => 'default',
+            html => sub {
+                my ( $prop, $obj, $app ) = @_;
+                $obj->evaluate;
             },
         },
         description => {
