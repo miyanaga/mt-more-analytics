@@ -20,6 +20,7 @@ our @EXPORT = qw(
     observe_date_range
     treat_config
     date_diff
+    data_api_policy
 );
 
 my @INHERITABLE_CONFIG = qw(
@@ -30,6 +31,12 @@ my @INHERITABLE_CONFIG = qw(
     ka_ignore_keywords
     ka_ignore_regex
 );
+
+my @POLICIES = qw(
+    ondemand_data_api_policy
+    stats_data_api_policy
+);
+my %POLICY_CACHE;
 
 our $NOW;
 
@@ -74,6 +81,7 @@ sub actual_config {
     if ( $blog ) {
         $blog = ( MT->model('blog')->load($blog) || MT->model('website')->load($blog) )
             unless ref $blog;
+        return unless $blog;
 
         $blog_id = $blog->id;
         $parent_config = actual_config( $blog->is_blog ? $blog->website : undef );
@@ -93,6 +101,10 @@ sub actual_config {
     foreach my $c ( @INHERITABLE_CONFIG ) {
         $config{$c} = $parent_config->{$c}
             if $config{"inherit_$c"};
+    }
+
+    foreach my $c ( @POLICIES ) {
+        $config{$c} ||= $parent_config->{$c} || 'deny';
     }
 
     \%config;
@@ -205,6 +217,33 @@ sub date_diff {
     my $days = int( ( $end - $start ) / $a_day );
 
     $days;
+}
+
+sub data_api_policy {
+    my ( $blog, $type ) = @_;
+    my $blog_id = ref $blog ? $blog->id : $blog;
+
+    my @path = qw/more_analytics data_api_policy_options/;
+    my ( $id, $policy );
+
+    # Check cache at first
+    $POLICY_CACHE{$blog_id} ||= {};
+    $id = $POLICY_CACHE{$blog_id}{$type};
+    if ( defined $id ) {
+        return wantarray
+            ? ( $id, MT->registry(@path, $id) )
+            : $id;
+    }
+
+    # Get and cache actual config
+    $blog = ref $blog ? $blog : MT->model('blog')->load($blog_id);
+    my $config = actual_config($blog);
+    $type .= '_data_api_policy';
+    $id = $POLICY_CACHE{$blog_id}{$type} = $config->{$type} || 'deny';
+
+    return wantarray
+        ? ( $id, MT->registry(@path, $id) )
+        : $id;
 }
 
 1;

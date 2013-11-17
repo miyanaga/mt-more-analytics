@@ -4,6 +4,8 @@ use strict;
 use base qw(MT::Object);
 use MT::MoreAnalytics::Util;
 
+our ( %COLS2METS, %METS2COLS );
+
 __PACKAGE__->install_properties(
     {   column_defs => {
             'id'             => 'integer not null auto_increment',
@@ -40,6 +42,37 @@ sub has_column_def {
 sub cleanup {
     my $class = shift;
     # TODO Imprement 
+}
+
+sub _hash_stats {
+    my ( $type, $hasher ) = @_;
+    my $defines = MT->registry('more_analytics', 'object_stats', $type);
+    my %hash = map {
+        my $define = $defines->{$_};
+        my $col = $define->{col} || $_;
+        my $metrics = $define->{metrics} || $_;
+        $hasher->($col, $metrics);
+    } keys %$defines;
+
+    \%hash;
+}
+
+sub metrics_to_cols {
+    my $pkg = shift;
+    my ( $type ) = @_;
+    $type ||= 'by_page_path';
+
+    return $METS2COLS{$type} if $METS2COLS{$type};
+    $METS2COLS{$type} = _hash_stats( $type, sub { $_[1] => $_[0] });
+}
+
+sub cols_to_metrics {
+    my $pkg = shift;
+    my ( $type ) = @_;
+    $type ||= 'by_page_path';
+
+    return $COLS2METS{$type} if $COLS2METS{$type};
+    $COLS2METS{$type} = _hash_stats( $type, sub { $_[0] => $_[1] });
 }
 
 1;

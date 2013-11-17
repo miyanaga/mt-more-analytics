@@ -14,7 +14,7 @@ use vars qw( %Lexicon );
     "ideaman's Inc." => 'アイデアマンズ株式会社',
     'Edit Custom KPI Widget' => 'カスタムKPIウィジェットの編集',
     'Manage Aggregation Period' => '集計期間の管理',
-    'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
+    'API Playground' => 'APIプレイグラウンド',
     'Yesterday(The last day)' => '昨日(集計前日)',
     'Days before' => '○日前',
     'New Period' => '集計期間の作成',
@@ -118,6 +118,9 @@ use vars qw( %Lexicon );
     'Avg. Page Stay' => '平均ページ滞在',
     'Avg. Site Stay' => '平均サイト滞在',
 
+    'Allow All' => 'すべて許可',
+    'Deny All' => 'すべて拒否',
+
     # tmpl/playground.tmpl
     'Google Analytics API Playground' => 'Google Analytics APIプレイグラウンド',
     'Profile' => 'プロファイル',
@@ -184,6 +187,21 @@ use vars qw( %Lexicon );
     'Not inherit, define at here' => '継承せずここで定義する',
 
     '(No Settings)' => '(設定なし)',
+
+    'Data API Policy' => 'Data APIポリシー',
+    'Select how to response Data API request about Google Analytics.'
+        => 'Google Analyticsについて、Data APIリクエストにどのように応じるか設定してください。',
+    'If you no have plan to use Data API, select "Deny All".'
+        => 'もしData APIを利用する予定がなければ、「すべて拒否」を推奨します。',
+
+    'API Call' => 'API呼び出し',
+    'Policy for /sites/:site_id/more-analytics endpoint.'
+        => '/sites/:site_id/more-analytics エンドポイントに対するポリシーです。',
+    'Object Stats' => 'オブジェクト統計',
+    'Policy if contain access stats to each object response data.'
+        => '各オブジェクトのレスポンスデータにアクセス統計も含めるかを選択します。',
+
+    'Inherit from Parent - [_1]' => '親の設定から継承([_1])',
 
     # tmpl/edit_ma_period.tmpl
     'Create Aggregation Period' => '集計期間の作成',

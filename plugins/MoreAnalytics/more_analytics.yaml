@@ -45,3 +45,13 @@ object_stats_tasks:
     by_page_path:
         order: 100
         code: $MoreAnalytics::MT::MoreAnalytics::ObjectStat::ByPagePath::task
+
+data_api_policy_options:
+    deny:
+        label: Deny All
+        order: 100
+        condition: sub { shift->error(403) }
+    allow:
+        label: Allow All
+        order: 200
+        condition: sub { 1 }

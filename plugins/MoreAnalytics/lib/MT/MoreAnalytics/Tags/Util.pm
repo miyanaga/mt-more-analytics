@@ -56,7 +56,6 @@ sub hdlr_GACompareEntries {
     @entries = reverse @entries if $args->{reverse};
 
     my @ids = map { $_->id } @entries;
-    _dumper(\@ids);
 
     # Loop entries and build
     my $out = '';

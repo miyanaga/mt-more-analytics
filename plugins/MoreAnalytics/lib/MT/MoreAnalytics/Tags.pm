@@ -125,7 +125,7 @@ sub _handle_report_tag {
 
     # Merge default args
     my $default_args = $ctx->{__stash}{ga_report_args} || {};
-    _dumper($default_args);
+    # _dumper($default_args);
     foreach my $d ( keys %$default_args ) {
         $args->{$d} = $default_args->{$d};
     }
@@ -157,7 +157,6 @@ sub _handle_report_tag {
     # For sparkline dimensions
     if ( $args->{sparkline} ) {
         my $diff = date_diff( $blog, $args->{start_date}, $args->{end_date} );
-        _dumper($diff);
         $args->{dimensions} = $diff < 2 ? 'dateHour'
             : $diff < 33 ? 'date'
             : $diff < 180 ? 'yearWeek'

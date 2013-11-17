@@ -1,0 +1,46 @@
+<mtapp:settinggroup
+  id="ma-data-api-policy">
+
+  <h2><__trans phrase="Data API Policy"></h2>
+  <p>
+    <span><__trans phrase="Select how to response Data API request about Google Analytics."></span>
+    <span><__trans phrase='If you no have plan to use Data API, select "Deny All".'></span>
+  </p>
+
+  <mtapp:setting
+    id="ma-ondemand-data-api-policy"
+    label="<__trans phrase='API Call'>"
+    show_hint="1"
+    hint="<__trans phrase='Policy for /sites/:site_id/more-analytics endpoint.'>"
+  >
+    <ul>
+      <mt:loop name="ondemand_data_api_policies">
+      <li>
+        <label>
+          <input type="radio" class="radio" name="ondemand_data_api_policy" value="<mt:var name='value' escape='html'>"<mt:if name="checked"> checked="checked"</mt:if>>
+          <mt:var name="label">
+        </label>
+      </li>
+      </mt:loop>
+    </ul>
+  </mtapp:setting>
+
+  <mtapp:setting
+    id="ma-stats-data-api-policy"
+    label="<__trans phrase='Object Stats'>"
+    show_hint="1"
+    hint="<__trans phrase='Policy if contain access stats to each object response data.'>"
+  >
+    <ul>
+      <mt:loop name="stats_data_api_policies">
+      <li>
+        <label>
+          <input type="radio" class="radio" name="stats_data_api_policy" value="<mt:var name='value' escape='html'>"<mt:if name="checked"> checked="checked"</mt:if>>
+          <mt:var name="label">
+        </label>
+      </li>
+      </mt:loop>
+    </ul>
+  </mtapp:setting>
+
+</mtapp:settinggroup>

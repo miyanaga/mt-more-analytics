@@ -6,7 +6,8 @@ description: <__trans phrase="Provides more features for Google Analytics.">
 version: 0.4.0
 schema_version: 0.11
 l10n_class: MT::MoreAnalytics::L10N
-system_config_template: config/system.tmpl
+system_config_template:
+    code: $MoreAnalytics::MT::MoreAnalytics::CMS::Config::system_config
 blog_config_template:
     code: $MoreAnalytics::MT::MoreAnalytics::CMS::Config::blog_config
 
@@ -40,6 +41,8 @@ settings:
     schema_version_checksum:
         Default: 0
         Scope: system
+    ondemand_data_api_policy:
+    stats_data_api_policy:
 
 config_setting:
     MoreAnalyticsKeywordCounts:
@@ -47,58 +50,58 @@ config_setting:
 
 permissions:
     website.ma_edit_custom_widget:
-        group: website_admin
+        group: more_analytics
         label: Edit Custom KPI Widget
         order: 3000
         permitted_action:
             ma_edit_custom_widget: 1
     blog.ma_edit_custom_widget:
-        group: blog_admin
+        group: more_analytics
         label: Edit Custom KPI Widget
         order: 3000
         permitted_action:
             ma_edit_custom_widget: 1
     website.ma_manage_period:
-        group: website_admin
+        group: more_analytics
         label: Manage Aggregation Period
-        order: 3100
+        order: 3010
         permitted_action:
             ma_list_period: 1
             ma_edit_period: 1
     blog.ma_manage_period:
-        group: blog_admin
+        group: more_analytics
         label: Manage Aggregation Period
-        order: 3100
+        order: 3010
         permitted_action:
             ma_list_period: 1
             ma_edit_period: 1
     website.ma_playground:
-        group: website_admin
-        label: Google Analytics API Playground
-        order: 3200
+        group: more_analytics
+        label: API Playground
+        order: 3020
         permitted_action:
             ma_playground: 1
     blog.ma_playground:
-        group: blog_admin
-        label: Google Analytics API Playground
-        order: 3200
+        group: more_analytics
+        label: API Playground
+        order: 3020
         permitted_action:
             ma_playground: 1
     system.ma_manage_period:
         group: sys_admin
         label: Manage Aggregation Period
-        order: 3100
+        order: 3010
         permitted_action:
             ma_list_period: 1
             ma_edit_period: 1
     website.administer_blog:
         inherit_from:
-            - website.edit_custom_widget
+            - website.ma_edit_custom_widget
             - website.ma_manage_period
             - website.ma_playground
     blog.administer_blog:
         inherit_from:
-            - blog.edit_custom_widget
+            - blog.ma_edit_custom_widget
             - blog.ma_manage_period
             - blog.ma_playground
 
@@ -132,9 +135,14 @@ list_properties:
 callbacks:
     post_init: $MoreAnalytics::MT::MoreAnalytics::on_post_init
     MT::MoreAnalytics::Period::post_save: $MoreAnalytics::MT::MoreAnalytics::Period::on_post_save
+    MT::PluginData::post_save: $MoreAnalytics::MT::MoreAnalytics::on_post_save_plugin_config
+    MT::Entry::pre_search: $MoreAnalytics::MT::MoreAnalytics::DataAPI::on_pre_search # for debug
 
 applications:
     data_api:
+        callbacks:
+            data_api_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::DataAPI::on_pre_load_filtered_list_entry 
+            data_api_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::DataAPI::on_pre_load_filtered_list_entry 
         endpoints:
             -
                 id: more_analytics
@@ -161,9 +169,10 @@ applications:
             cms_save_filter.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_save_filter_period
             cms_pre_save.ma_period: $MoreAnalytics::MT::MoreAnalytics::CMS::Period::on_pre_save_period
             template_param.list_common: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_template_param_list_common
+            template_param.edit_entry: $MoreAnalytics::MT::MoreAnalytics::CMS::KeywordAssistant::on_template_param_edit_entry
+            template_param.edit_role: $MoreAnalytics::MT::MoreAnalytics::CMS::Role::on_template_param_edit_role
             cms_pre_load_filtered_list.entry: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
             cms_pre_load_filtered_list.page: $MoreAnalytics::MT::MoreAnalytics::CMS::Listing::on_pre_load_filtered_list_entry
-            template_param.edit_entry: $MoreAnalytics::MT::MoreAnalytics::CMS::KeywordAssistant::on_template_param_edit_entry
         content_actions:
             ma_period:
                 new_peiod:

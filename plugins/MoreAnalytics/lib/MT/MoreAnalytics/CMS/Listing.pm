@@ -116,12 +116,14 @@ sub on_pre_load_filtered_list_entry {
     my $ds = $q->param('datasource');
 
     # Get available period.
-    my $ma_period_id = $app->param('ma_period_id') || 0;
     my $period;
-    $period = MT->model('ma_period')->load($ma_period_id) if $ma_period_id;
+
+    if ( my $ma_period_id = $app->param('ma_period_id') ) {
+        $period = MT->model('ma_period')->load($ma_period_id) if $ma_period_id;
+    }
 
     unless ( $period ) {
-        $period = MT->ma_period_id->load({basename => 'default'})
+        $period = MT->model('ma_period_id')->load({basename => 'default'})
             or return 1;
     }
 
