@@ -6,6 +6,7 @@ description: <__trans phrase="Provides more features for Google Analytics.">
 version: 0.4.0
 schema_version: 0.11
 l10n_class: MT::MoreAnalytics::L10N
+
 system_config_template:
     code: $MoreAnalytics::MT::MoreAnalytics::CMS::Config::system_config
 blog_config_template:
@@ -104,6 +105,9 @@ permissions:
             - blog.ma_edit_custom_widget
             - blog.ma_manage_period
             - blog.ma_playground
+    system.administer:
+        inherit_from:
+            - system.ma_manage_period
 
 object_types:
     ma_cache: MT::MoreAnalytics::Cache
