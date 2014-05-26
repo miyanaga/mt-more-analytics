@@ -28,7 +28,7 @@ sub profiles {
     my $plugindata = GoogleAnalytics::current_plugindata( $app, $self->blog );
     my $token = effective_token( $app, $plugindata );
 
-    my $profiles = get_profiles( $app, $ua, { data => $token } );
+    my $profiles = get_profiles( $app, $ua, $token->{data} ? $token : { data => $token } );
 
     $profiles;
 }

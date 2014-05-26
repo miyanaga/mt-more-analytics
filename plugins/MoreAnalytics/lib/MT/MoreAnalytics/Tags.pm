@@ -10,107 +10,105 @@ use MT::MoreAnalytics::Util;
 use MT::MoreAnalytics::Provider;
 use MT::MoreAnalytics::Request;
 
-{
-    sub _lookup_more_analytics {
-        my ( $eh, $ctx, $args ) = @_;
-        my $app = MT->instance;
+sub _lookup_more_analytics {
+    my ( $eh, $ctx, $args ) = @_;
+    my $app = MT->instance;
 
-        # Context cache
-        my $providers = ( $ctx->{__stash}{ma_providers} ||= {} );
+    # Context cache
+    my $providers = ( $ctx->{__stash}{ma_providers} ||= {} );
 
-        # Requires blog context
-        my $blog_id = $args->{blog_id} || $args->{blog_ids};
-        my $blog = $blog_id
-            ? ( MT->model('blog')->load($blog_id) || MT->model('website')->load($blog_id) )
-            : $ctx->stash('blog');
+    # Requires blog context
+    my $blog_id = $args->{blog_id} || $args->{blog_ids};
+    my $blog = $blog_id
+        ? ( MT->model('blog')->load($blog_id) || MT->model('website')->load($blog_id) )
+        : $ctx->stash('blog');
 
-        $blog or return $eh->error(
-                plugin->translate( '[_1] requires blog context.', 'mt:GAReport' ) );
+    $blog or return $eh->error(
+            plugin->translate( '[_1] requires blog context.', 'mt:' . $ctx->stash('tag') ) );
 
-        # Lookup cache
-        return $providers->{$blog->id}
-            if defined $providers->{$blog->id};
+    # Lookup cache
+    return $providers->{$blog->id}
+        if defined $providers->{$blog->id};
 
-        # Check if MoreAnalytics provider is ready
-        MT::MoreAnalytics::Provider->is_ready( $app, $blog )
-            or return $eh->error(
-                plugin->translate( 'Google Analytics is not ready for blog or website ID:[_1]', $blog->id ) );
+    # Check if MoreAnalytics provider is ready
+    MT::MoreAnalytics::Provider->is_ready( $app, $blog )
+        or return $eh->error(
+            plugin->translate( 'Google Analytics is not ready for blog or website ID:[_1]', $blog->id ) );
 
-        # Generate MoreAnalytics provider and store to cache
-        $providers->{$blog->id}
-            = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
+    # Generate MoreAnalytics provider and store to cache
+    $providers->{$blog->id}
+        = MT::MoreAnalytics::Provider->new( 'MoreAnalytics', $blog );
+}
+
+sub _dump_results {
+    my ( $ctx, $args, $array ) = @_;
+    no warnings 'uninitialized';
+
+    # Collect headers
+    my %headers;
+    foreach my $row ( @$array ) {
+        $headers{$_} = 1 foreach keys %$row;
+    }
+    my @headers = sort keys %headers;
+
+    # Format: table, csv or tsv
+    my $format = lc($args->{_dump} || '');
+    $format = 'table' if $format !~ /^(table|csv|tsv)$/i;
+
+    # Handler and separator by format
+    my ( $sep, $headerer, $rower, $liner );
+    if ( $format eq 'csv' || $format eq 'tsv' ) {
+        $sep = $format eq 'csv'? ',': "\t";
+        $headerer = $rower = sub {
+            $_ = shift;
+            $_ =~ s/"/\\"/;
+            $_ = qq("$_") if /($sep|\n)/;
+            $_;
+        };
+        $liner = sub { shift };
+    } else {
+        $headerer = sub {
+            $_ = shift;
+            "<th>$_</th>";
+        };
+        $rower = sub {
+            $_ = shift;
+            "<td>$_</td>";
+        };
+        $liner = sub {
+            $_ = shift;
+            "<tr>$_</tr>";
+        };
     }
 
-    sub _dump_results {
-        my ( $ctx, $args, $array ) = @_;
-        no warnings 'uninitialized';
+    $sep ||= '';
+    my $result = '';
 
-        # Collect headers
-        my %headers;
-        foreach my $row ( @$array ) {
-            $headers{$_} = 1 foreach keys %$row;
-        }
-        my @headers = sort keys %headers;
+    # Concat headers
+    $result .= $liner->(
+        join( $sep,
+            map { $headerer->($_) }
+            @headers
+        )
+    );
+    $result .= "\n";
 
-        # Format: table, csv or tsv
-        my $format = lc($args->{_dump} || '');
-        $format = 'table' if $format !~ /^(table|csv|tsv)$/i;
-
-        # Handler and separator by format
-        my ( $sep, $headerer, $rower, $liner );
-        if ( $format eq 'csv' || $format eq 'tsv' ) {
-            $sep = $format eq 'csv'? ',': "\t";
-            $headerer = $rower = sub {
-                $_ = shift;
-                $_ =~ s/"/\\"/;
-                $_ = qq("$_") if /($sep|\n)/;
-                $_;
-            };
-            $liner = sub { shift };
-        } else {
-            $headerer = sub {
-                $_ = shift;
-                "<th>$_</th>";
-            };
-            $rower = sub {
-                $_ = shift;
-                "<td>$_</td>";
-            };
-            $liner = sub {
-                $_ = shift;
-                "<tr>$_</tr>";
-            };
-        }
-
-        $sep ||= '';
-        my $result = '';
-
-        # Concat headers
-        $result .= $liner->(
-            join( $sep,
-                map { $headerer->($_) }
-                @headers
-            )
+    # Concat lines
+    foreach my $r ( @$array ) {
+        my $line = join( $sep,
+            map { $rower->($_) }
+            map { $r->{$_} }
+            @headers
         );
+        $result .= $liner->($line);
         $result .= "\n";
-
-        # Concat lines
-        foreach my $r ( @$array ) {
-            my $line = join( $sep,
-                map { $rower->($_) }
-                map { $r->{$_} }
-                @headers
-            );
-            $result .= $liner->($line);
-            $result .= "\n";
-        }
-
-        # For table
-        $result = qq(<table>\n$result</table>)
-            if $format eq 'table';
-
-        $result;
     }
+
+    # For table
+    $result = qq(<table>\n$result</table>)
+        if $format eq 'table';
+
+    $result;
 }
 
 sub _handle_report_tag {
@@ -693,6 +691,7 @@ sub hdlr_GAIfObjectType {
 
 sub hdlr_GAProfiles {
     my ( $ctx, $args, $cond ) = @_;
+
     my $ma = _lookup_more_analytics( $ctx, $ctx, $args )
         or return;
 
@@ -702,10 +701,16 @@ sub hdlr_GAProfiles {
     return _dump_results( $ctx, $args, $profiles )
         if $args->{_dump};
 
+    my $filter = $args->{filter};
+    my %filters; %filters = map { $_ => 1 } split(/\s*,\s*/, $filter || '') if defined $filter;
+
     my $result = '';
     my $builder = $ctx->stash('builder');
     my $tokens = $ctx->stash('tokens');
     foreach my $profile ( @$profiles ) {
+        # Skip if filter defined and not included.
+        next if defined $filter && !$filters{$profile->{id}};
+
         local $ctx->{__stash}{ga_profile} = $profile;
         defined ( my $out = $builder->build($ctx, $tokens) )
             or return $ctx->error($builder->errstr);
