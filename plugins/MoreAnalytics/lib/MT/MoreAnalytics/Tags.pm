@@ -367,11 +367,8 @@ sub hdlr_GAReportBreak {
         # Convert types
         foreach my $n ( keys %$hash ) {
             if ( $n =~ /^\@(.+?)$/ ) {
-                print STDERR $n, "\n";
                 my $actual = $1;
-                print STDERR $n, "\n";
                 my $v = delete $hash->{$n};
-                print STDERR $v, "\n";
                 $hash->{$actual} = [ split(/\s*,\s*/, $v) ];
             }
         }
