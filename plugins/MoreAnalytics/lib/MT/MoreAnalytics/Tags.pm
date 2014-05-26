@@ -391,6 +391,7 @@ sub hdlr_GAChart {
     my $x = $args->{x} || $request_params->{dimensions};
     my $y = $args->{y} || $request_params->{metrics};
     my $default = $args->{default} || 0;
+    my $scale = $args->{scale};
 
     my @xs = map { s/^ga://; $_ } split(/\s*,\s*/, $x);
     $x = shift @xs;
@@ -402,6 +403,8 @@ sub hdlr_GAChart {
         $hash{x} = $item->{$x};
         for ( my $i = 0; $i < scalar @ys; $i++ ) {
             my $k = $ys[$i];
+            $k = $k * $scale if defined $scale;
+
             my $l = 'y';
             $l .= $i if $i > 0;
 
