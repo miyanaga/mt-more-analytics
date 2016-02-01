@@ -61,10 +61,14 @@ sub normalize {
         my $value = $args->{$name};
         if ( $name =~ /^(ids|filters|fields|metrics|dimensions|sort|segment)$/ ) {
 
-            # Metrics or dimansions
+            # Metrics or dimensions
             $value =~ s!ga:!!g;
             $value =~ s!\s*([,;])\s*!$1!g;
-            $value =~ s!(^|,|;|-)([a-z0-9])!$1ga:$2!gi;
+            if ($name eq 'filters') {
+            	$value =~ s!(^|,|;)([a-z0-9])!$1ga:$2!gi;
+            } else {
+            	$value =~ s!(^|,|;|-)([a-z0-9])!$1ga:$2!gi;
+            }
             $normalized->{$name} = $value if length($value);
         } elsif ( $name =~ /^(start|end)-date$/ ) {
 
