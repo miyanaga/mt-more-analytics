@@ -16,7 +16,7 @@ use MT::MoreAnalytics::Util;
 sub _name {
     my $n = shift;
     $n =~ s/^ga://;
-    $n;
+    $n eq 'Pageviews' ? lc($n) : $n;
 }
 
 sub profiles {
