@@ -29,7 +29,7 @@ sub endpoint {
     my ( $app, $endpoint ) = @_;
     my $q = $app->param;
 
-    defined( my $res = _check_condition('ondemand', @_) )
+    defined( my $r = _check_condition('ondemand', @_) )
         or return;
 
     # TODO Fix reusing tag routime. GA handling should be more abstract
