@@ -37,17 +37,6 @@ sub _request {
     my $self = shift;
     my ( $app, $params, $retry_count ) = @_;
 
-# DEBUG
-	my %debug = ();
-	if ( $MT::DebugMode ) {
-		%debug = (
-			message =>
-				'MT::MoreAnalytics::Provider _request called by ' . ( caller(2) )[3],
-			metadata => 'Parent: ' . ( caller(1) )[3] . "\n" .
-						'Params: ' . Data::Dumper->Dumper($params),
-		);
-	}
-
     require GoogleAnalytics::OAuth2;
     my $plugindata = GoogleAnalytics::current_plugindata( $app, $self->blog );
     my $token = effective_token( $app, $plugindata )
@@ -55,7 +44,7 @@ sub _request {
 
     my $config = $plugindata->data;
 
-    # Different from original
+    # Deferent from original
     $params->{ids} ||= 'ga:' . $config->{profile_id};
 
     # Normalize date format
@@ -87,19 +76,7 @@ sub _request {
     my $access_token = $token->{data}->{access_token} || '';
     if ( my $cache = MT->model('ma_cache')->lookup( ns => 'ga_report', serial => $serial ) ) {
         $json = $cache->text;
-
-# DEBUG
-		if ( $MT::DebugMode ) {
-			$debug{metadata} .= "\n" . 'Results were retrieved from cache.';
-		}
-
     } else {
-
-# DEBUG
-		if ( $MT::DebugMode ) {
-			$debug{metadata} .= "\n" . 'Requesting URI: ' . $uri->as_string;
-		}
-
         my $ua  = new_ua();
         my $res = $ua->request(
             GET($uri,
@@ -145,18 +122,6 @@ sub _request {
             last;
         }
     }
-
-# DEBUG
-	if ( $MT::DebugMode ) {
-		$debug{metadata} .= "\n" . 'Total results: ' . $data->{totalResults};
-		$app->log({
-			message => $debug{message},
-			metadata => $debug{metadata},
-			class    => 'system',
-			category => 'plugin',
-			level    => MT::Log::INFO()
-		});
-	}
 
     +{  totalResults => $data->{totalResults},
         totals       => {
