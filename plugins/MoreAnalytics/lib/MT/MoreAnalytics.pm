@@ -10,7 +10,7 @@ sub on_post_save_plugin_config {
     my ( $cb, $obj ) = @_;
 
     # Reboot if config updated
-    MT->instance->reboot if $obj->plugin eq 'MoreAnalytics';
+    MT->app->reboot if $obj->plugin eq 'MoreAnalytics';
 
     1;
 }
