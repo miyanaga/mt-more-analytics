@@ -23,6 +23,12 @@ sub stats {
     $stats;
 }
 
+sub update_object_limit {
+    my %config;
+    plugin->load_config(\%config, 'system');
+    $config{update_object_limit} || 1000;
+}
+
 sub task {
     my ( $eh, %param ) = @_;
     my ( $app, $task, $report, $blog, $p, $age, $ma )
@@ -44,6 +50,7 @@ sub task {
         $p->ga_date_range($blog),
         metrics     => join(',', keys %metrics),
         dimensions  => 'pagePath',
+        'max-results' => update_object_limit(),
     );
 
     my $data = $ma->_request($app, $request->normalize);

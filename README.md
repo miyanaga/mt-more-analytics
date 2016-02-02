@@ -2,6 +2,18 @@
 
 This plugin provides many features about Google Analytics based on GoogleAnalytics plugin.
 
+## Differences from the original version 0.4.0 at https://github.com/miyanaga/mt-more-analytics
+
+- Fixed an incompatibility with Six Apart's stock Google Analytics plugin, where MoreAnalytics would void all stats for the Dashboard Site Stats widget. See: https://github.com/miyanaga/mt-more-analytics/issues/2
+
+- Fixed a bug where the cache would never return any record and abnormally grow by storing multiple identical values because namespace and serial keys were not stored. See: https://github.com/miyanaga/mt-more-analytics/issues/4
+
+- Fixed a few typos and minor bugs
+
+- Added a configuration parameter to set the maximum number of results in a GA response (useful for big sites, otherwise you might not get stats for more than a few thousands entries)
+
+- Added Debug messages (if DebugMode is not null, calls and requests are logged in the System Log)
+
 ## Install
 
 Put the following directories into your Movable Type.
@@ -13,7 +25,7 @@ The upgrader runs once.
 
 ## Google Analytics API Playground
 
-If you already set up Google Analytics API in Movable Type, open playground on Google Analytics menu. You can 
+If you already set up Google Analytics API in Movable Type, open playground on Google Analytics menu.
 
 ## Template Tags
 
