@@ -55,6 +55,8 @@ sub store {
     my $now = epoch2ts( undef, time );
     my $cache = $pkg->load(\%args) || $pkg->new;
     $cache->set_values({
+        ns			=> $args{ns},
+        serial		=> $args{serial},
         text        => $text,
         blob        => $blob,
         size        => $size,

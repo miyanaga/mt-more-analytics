@@ -34,7 +34,7 @@ sub index {
         my $lang = MT->current_language;
         my $base = File::Spec->catdir(MT->instance->config('StaticFilePath'), qw(plugins MoreAnalytics metrics-and-dimensions));
         my $path = File::Spec->catdir($base, "$lang.js");
-        $lang = 'en_US' unless -f $path;        
+        $lang = 'en_US' unless -f $path;
 
         $param{metrics_and_dimensions_lang} = $lang;
     }
@@ -52,7 +52,7 @@ sub index {
         {
             basename => $_->basename,
             name => $_->long_name,
-            is_selected => ($_->basename == 'default' ?1 : 0),
+            is_selected => ($_->basename eq 'default' ?1 : 0),
         }
     } MT->model('ma_period')->load({blog_id => \@blog_ids});
 
