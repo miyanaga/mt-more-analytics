@@ -2,7 +2,9 @@
 
 This plugin provides many features about Google Analytics based on GoogleAnalytics plugin.
 
-## Differences from the original version 0.4.0 at https://github.com/miyanaga/mt-more-analytics
+## Ver.0.5.0
+
+Thanks to https://github.com/padawan
 
 - Fixed an incompatibility with Six Apart's stock Google Analytics plugin, where MoreAnalytics would void all stats for the Dashboard Site Stats widget. See: https://github.com/miyanaga/mt-more-analytics/issues/2
 
